@@ -1,7 +1,31 @@
 'use client'
 
-import { useState, useEffect, useRef, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, KeyboardEvent, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+
+function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold: 0.18 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <div ref={ref} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'none' : 'translateY(18px)',
+      transition: `opacity 1.4s cubic-bezier(.2,.7,.2,1) ${delay}s, transform 1.4s cubic-bezier(.2,.7,.2,1) ${delay}s`,
+    }}>
+      {children}
+    </div>
+  )
+}
 
 export default function Home() {
   const supabase = createClient()
@@ -15,6 +39,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const heroEmailRef = useRef<HTMLInputElement>(null)
+  const ctaEmailRef = useRef<HTMLInputElement>(null)
   const topicInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -38,12 +63,14 @@ export default function Home() {
     if (e.key === 'Backspace' && !topicInput && topics.length) setTopics(p => p.slice(0, -1))
   }
 
-  function onHeroEmailKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') openModal(heroEmailRef.current?.value || '')
+  function onEmailKey(ref: React.RefObject<HTMLInputElement | null>) {
+    return (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') openModal(ref.current?.value || '')
+    }
   }
 
   async function handleSignup() {
-    if (!email || !email.includes('@') || !name || !password) { setError('fill in all fields.'); return }
+    if (!email || !email.includes('@') || !name || !password) { setError('please complete all fields.'); return }
     setLoading(true); setError('')
     const { error } = await supabase.auth.signUp({
       email, password,
@@ -55,7 +82,7 @@ export default function Home() {
   }
 
   async function handleFinish() {
-    if (!topics.length) { setError('add at least one interest.'); return }
+    if (!topics.length) { setError('please name at least one subject.'); return }
     const { data: { user } } = await supabase.auth.getUser()
     if (user) await supabase.from('interests').update({ topics }).eq('user_id', user.id)
     setLoading(true)
@@ -65,68 +92,94 @@ export default function Home() {
     setLoading(false)
   }
 
+  // Pseudo-edition number — gives a sense of provenance
+  const editionNumber = 142
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0c0c0c; color: #c8c4b8; font-family: 'Courier Prime', 'Courier New', monospace; -webkit-font-smoothing: antialiased; }
+        html { scroll-behavior: smooth; }
+        body { background: #0a0907; color: #c8c4b8; font-family: 'Courier Prime', 'Courier New', monospace; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         a { color: inherit; text-decoration: none; }
-        button, input { font-family: 'Courier Prime', 'Courier New', monospace; }
-        input::placeholder { color: #2e2e2e; }
+        button, input, textarea { font-family: 'Courier Prime', 'Courier New', monospace; }
+        input::placeholder { color: #3a352d; }
         input:focus { outline: none; }
-        button { transition: opacity 0.2s, transform 0.2s; }
-        button:hover { opacity: 0.6; }
-        .arrow { display: inline-block; transition: transform 0.25s ease; }
-        .submit:hover .arrow { transform: translateX(4px); }
-        @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+        button { transition: opacity 0.25s, color 0.25s; }
+        .arrow { display: inline-block; transition: transform 0.3s cubic-bezier(.2,.7,.2,1); }
+        .submit:hover { opacity: 0.8; }
+        .submit:hover .arrow { transform: translateX(5px); }
+        .link:hover { color: #ece7da !important; }
+        ::selection { background: #2a2620; color: #ece7da; }
+
+        @keyframes appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-        .cursor { display: inline-block; width: 8px; background: #c8c4b8; height: 1.05em; vertical-align: -0.15em; animation: blink 1.1s step-end infinite; margin-left: 2px; }
-        .a1 { animation: appear 1.2s ease 0.1s both; }
-        .a2 { animation: appear 1.2s ease 0.4s both; }
-        .a3 { animation: appear 1.2s ease 0.7s both; }
-        .a4 { animation: appear 1.2s ease 1.0s both; }
-        .a5 { animation: appear 1.2s ease 1.3s both; }
+        .cursor::after { content: '_'; animation: blink 1.1s step-end infinite; color: #ece7da; }
+        .pulse { animation: pulse 2.4s ease-in-out infinite; }
+
+        .a1 { animation: appear 1.2s ease 0.05s both; }
+        .a2 { animation: appear 1.4s ease 0.4s both; }
+        .a3 { animation: appear 1.4s ease 0.7s both; }
+        .a4 { animation: appear 1.4s ease 1.0s both; }
+        .a5 { animation: appear 1.4s ease 1.3s both; }
         .a6 { animation: appear 1.4s ease 1.6s both; }
+
+        @media (max-width: 700px) {
+          .row { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+        }
       `}</style>
 
       {/* Header */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '22px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="a1" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 6, textTransform: 'uppercase', color: '#e6e1d4' }}>Sift</span>
-        <button onClick={() => openModal()} className="a1" style={{ background: 'none', border: 'none', fontSize: 12, color: '#9a9384', cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign in</button>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, #0a0907 70%, transparent)' }}>
+        <span className="a1 serif" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 1, color: '#ece7da' }}>Sift</span>
+        <div className="a1" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>
+            <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#c4a86b' }}></span>
+            intake open
+          </span>
+          <button onClick={() => openModal()} className="link" style={{ background: 'none', border: 'none', fontSize: 12, color: '#a8a294', cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign in</button>
+          <button onClick={() => openModal()} className="submit" style={{ background: 'none', border: '1px solid #3a352d', color: '#ece7da', padding: '9px 18px', fontSize: 11, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>begin <span className="arrow">→</span></button>
+        </div>
       </header>
 
-      {/* Hero — single confident screen */}
-      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 40px 80px', position: 'relative' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', width: '100%' }}>
+      {/* Hero */}
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '140px 40px 80px', position: 'relative' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
 
-          <p className="a2" style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#8a8478', marginBottom: 56 }}>
-            — a daily briefing
-          </p>
+          {/* Masthead line */}
+          <div className="a2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1c1915', paddingBottom: 14, marginBottom: 56, fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>
+            <span>Edition №{editionNumber.toString().padStart(3, '0')}</span>
+            <span>{today}</span>
+            <span>For one reader</span>
+          </div>
 
-          <h1 className="a3" style={{ fontSize: 'clamp(34px,5vw,54px)', fontWeight: 400, color: '#ece7da', lineHeight: 1.35, letterSpacing: -0.5, marginBottom: 28 }}>
-            The internet,<br />
-            written for you alone.
+          <h1 className="a3 serif" style={{ fontSize: 'clamp(48px,7.5vw,92px)', fontWeight: 400, color: '#ece7da', lineHeight: 1.02, letterSpacing: -1.5, marginBottom: 28 }}>
+            The morning brief.<br />
+            <em style={{ fontStyle: 'italic', color: '#c4a86b' }}>Yours, and yours alone.</em>
           </h1>
 
-          <p className="a4" style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 64, maxWidth: 480 }}>
-            Every morning, a briefing arrives in your inbox — shaped around the subjects you follow, no two readers receive the same one.
+          <p className="a4" style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 56, maxWidth: 520 }}>
+            Each edition is composed nightly, for a single reader, around the subjects you choose to follow. Nothing else gets through.
           </p>
 
           <div className="a5" style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 14, gap: 14 }}>
+            <div className="row" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 14, gap: 14 }}>
               <span style={{ color: '#7a7468', fontSize: 14 }}>&gt;</span>
               <input
                 ref={heroEmailRef}
                 type="email"
                 placeholder="your email address"
-                onKeyDown={onHeroEmailKey}
-                style={{ background: 'none', border: 'none', fontSize: 15, color: '#ece7da', flex: 1, letterSpacing: 0.3 }}
+                onKeyDown={onEmailKey(heroEmailRef)}
+                style={{ background: 'none', border: 'none', fontSize: 16, color: '#ece7da', flex: 1, letterSpacing: 0.3, padding: '4px 0' }}
               />
               <button
                 onClick={() => openModal(heroEmailRef.current?.value || '')}
                 className="submit"
-                style={{ background: 'none', border: 'none', fontSize: 12, color: '#c8c4b8', cursor: 'pointer', letterSpacing: 2, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
+                style={{ background: '#c4a86b', border: 'none', color: '#0a0907', padding: '11px 22px', fontSize: 11, cursor: 'pointer', letterSpacing: 2.5, whiteSpace: 'nowrap', textTransform: 'uppercase', fontWeight: 700 }}
               >
                 begin <span className="arrow">→</span>
               </button>
@@ -134,112 +187,252 @@ export default function Home() {
           </div>
 
           <p className="a6" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18 }}>
-            $1.99 / month &nbsp;·&nbsp; seven days free &nbsp;·&nbsp; cancel anytime
+            $1.99 / month &nbsp;·&nbsp; first seven days free &nbsp;·&nbsp; leave from inside, anytime
           </p>
 
         </div>
 
         {/* Subtle scroll cue */}
-        <button
-          onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
-          className="a6"
-          style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', background: 'none', border: 'none', color: '#7a7468', fontSize: 12, letterSpacing: 2, cursor: 'pointer', textTransform: 'uppercase' }}
-        >
-          a sample ↓
-        </button>
+        <div className="a6" style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: '#3a352d', letterSpacing: 3, textTransform: 'uppercase' }}>
+          continue ↓
+        </div>
       </main>
 
-      {/* Sample preview — what you actually get */}
-      <section id="preview" style={{ minHeight: '100vh', padding: '120px 40px', borderTop: '1px solid #161310', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', width: '100%' }}>
-          <p style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#8a8478', marginBottom: 32 }}>
-            — a recent edition
-          </p>
+      {/* Manifest */}
+      <section style={{ padding: '160px 40px', borderTop: '1px solid #1c1915' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <Reveal>
+            <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 64 }}>
+              — the editorial line
+            </p>
+          </Reveal>
 
-          <div style={{ border: '1px solid #2a2620', padding: '36px 40px', background: '#0e0d0a' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, paddingBottom: 16, borderBottom: '1px solid #2a2620' }}>
-              <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: 4, color: '#ece7da', textTransform: 'uppercase' }}>Sift</span>
-              <span style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>Wed, 13 May</span>
+          {[
+            'We do not aggregate.',
+            'We do not link-dump.',
+            'We do not chase virality.',
+            'We write.',
+          ].map((line, i) => (
+            <Reveal key={i} delay={0.15 * i}>
+              <p className="serif" style={{
+                fontSize: 'clamp(28px,4vw,46px)',
+                fontWeight: 400,
+                color: i === 3 ? '#ece7da' : '#a8a294',
+                lineHeight: 1.4,
+                fontStyle: i === 3 ? 'italic' : 'normal',
+                marginBottom: 8,
+                letterSpacing: -0.3,
+              }}>
+                {line}
+              </p>
+            </Reveal>
+          ))}
+
+          <Reveal delay={0.7}>
+            <p style={{ fontSize: 14, color: '#7a7468', lineHeight: 1.85, marginTop: 56, maxWidth: 480 }}>
+              Sift exists because the morning briefings of others are written for everyone, which means written for no one.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Sample edition */}
+      <section style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 32 }}>
+              <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468' }}>
+                — a recent edition
+              </p>
+              <p style={{ fontSize: 11, color: '#5a564c', letterSpacing: 1 }}>composed for a single reader</p>
             </div>
+          </Reveal>
 
-            <p style={{ fontSize: 11, letterSpacing: 2, color: '#8a8478', textTransform: 'uppercase', marginBottom: 8 }}>good morning, alex</p>
-            <p style={{ fontSize: 18, color: '#ece7da', marginBottom: 36, fontStyle: 'italic' }}>your briefing is ready.</p>
+          <Reveal delay={0.15}>
+            <article style={{ border: '1px solid #2a2620', padding: '44px 48px', background: '#0e0c09' }}>
+              <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36, paddingBottom: 18, borderBottom: '1px solid #2a2620' }}>
+                <span className="serif" style={{ fontSize: 22, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
+                <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>Edition №141 &nbsp;·&nbsp; 12 May 2025</span>
+              </header>
 
-            {[
-              { tag: 'quantum computing', headline: 'IBM\'s 1,000-qubit prototype hits coherence threshold.', body: 'A milestone the field has been chasing for half a decade. The implications for cryptography are not subtle.' },
-              { tag: 'venture capital', headline: 'A quiet down-round in the AI infrastructure space.', body: 'The valuation correction nobody wanted to write about. But the underlying business is, by most accounts, still real.' },
-              { tag: 'central banking', headline: 'The ECB hints at an unusual policy divergence.', body: 'Lagarde\'s phrasing was specific. Markets noticed; analysts are still parsing what she chose not to say.' },
-            ].map((s, i) => (
-              <div key={i} style={{ marginBottom: 28, paddingBottom: i < 2 ? 28 : 0, borderBottom: i < 2 ? '1px solid #2a2620' : 'none' }}>
-                <p style={{ fontSize: 11, letterSpacing: 2, color: '#9a9384', textTransform: 'uppercase', marginBottom: 8 }}>{s.tag}</p>
-                <p style={{ fontSize: 15, color: '#dad5c8', lineHeight: 1.55, marginBottom: 8 }}>{s.headline}</p>
-                <p style={{ fontSize: 13, color: '#8a8478', lineHeight: 1.75 }}>{s.body}</p>
+              <p style={{ fontSize: 11, letterSpacing: 2.5, color: '#8a8478', textTransform: 'uppercase', marginBottom: 6 }}>good morning, alex</p>
+              <p className="serif" style={{ fontSize: 24, color: '#ece7da', marginBottom: 40, fontStyle: 'italic', fontWeight: 400 }}>your briefing is ready.</p>
+
+              {[
+                {
+                  tag: 'quantum computing',
+                  headline: 'IBM\'s 1,000-qubit prototype crosses the coherence threshold.',
+                  body: 'A milestone the field has been chasing for half a decade. Beneath the marketing, the underlying error-correction work is the part to read carefully — the implications for cryptography are not subtle.',
+                  italic: 'Why it matters: the post-quantum migration timeline just shortened.',
+                },
+                {
+                  tag: 'venture capital',
+                  headline: 'A quiet down-round in the AI infrastructure space.',
+                  body: 'The valuation correction nobody wanted to write about. The underlying business is, by most accounts, still real. The unit economics have simply caught up with the storytelling.',
+                  italic: 'Why it matters: a shift in what late-stage capital will pay for.',
+                },
+                {
+                  tag: 'central banking',
+                  headline: 'The ECB hints at an unusual policy divergence.',
+                  body: 'Lagarde\'s phrasing was specific. Markets noticed; analysts are still parsing what she chose not to say. The euro moved before any release crossed the wire.',
+                  italic: 'Why it matters: the dollar-euro spread may widen further than consensus.',
+                },
+              ].map((s, i) => (
+                <div key={i} style={{ marginBottom: 32, paddingBottom: i < 2 ? 32 : 0, borderBottom: i < 2 ? '1px solid #2a2620' : 'none' }}>
+                  <p style={{ fontSize: 11, letterSpacing: 2, color: '#9a9384', textTransform: 'uppercase', marginBottom: 10 }}>{s.tag}</p>
+                  <p className="serif" style={{ fontSize: 19, color: '#ece7da', lineHeight: 1.4, marginBottom: 12, fontWeight: 500, letterSpacing: -0.2 }}>{s.headline}</p>
+                  <p style={{ fontSize: 13, color: '#a8a294', lineHeight: 1.85, marginBottom: 10 }}>{s.body}</p>
+                  <p className="serif" style={{ fontSize: 13, color: '#c4a86b', fontStyle: 'italic', lineHeight: 1.7 }}>{s.italic}</p>
+                </div>
+              ))}
+            </article>
+          </Reveal>
+
+          <Reveal delay={0.3}>
+            <p style={{ fontSize: 13, color: '#8a8478', marginTop: 32, lineHeight: 1.85, letterSpacing: 0.3, fontStyle: 'italic' }}>
+              That edition went to one reader. Yours will not look like it.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Range */}
+      <section style={{ padding: '140px 40px', borderTop: '1px solid #1c1915' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <Reveal>
+            <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 32 }}>
+              — among recent subjects
+            </p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p className="serif" style={{ fontSize: 'clamp(20px,2.5vw,30px)', color: '#a8a294', lineHeight: 1.7, fontWeight: 400, letterSpacing: -0.2 }}>
+              <span style={{ color: '#ece7da' }}>Byzantine history.</span> Quantum computing. The independent film circuit. Formula 1. <span style={{ color: '#ece7da' }}>Central banking.</span> Ocean science. Venture capital. Literary fiction. <span style={{ color: '#ece7da' }}>Climate technology.</span> Biomimicry. <span style={{ fontStyle: 'italic', color: '#c4a86b' }}>Anything you can name.</span>
+            </p>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <p style={{ fontSize: 14, color: '#7a7468', lineHeight: 1.85, marginTop: 48, maxWidth: 520 }}>
+              No predefined categories. No algorithm deciding what you'd like. You name the subjects in your own words; we read them every night.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Testimony */}
+      <section style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+          <Reveal>
+            <p className="serif" style={{ fontSize: 'clamp(22px,3vw,32px)', color: '#dad5c8', lineHeight: 1.6, fontStyle: 'italic', fontWeight: 400, letterSpacing: -0.2 }}>
+              "I have read every edition since I joined. It is the one thing in my inbox I do not skim."
+            </p>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <p style={{ fontSize: 12, color: '#7a7468', marginTop: 28, letterSpacing: 2, textTransform: 'uppercase' }}>
+              — J.M., London &nbsp;·&nbsp; reader since edition №38
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Pricing & final CTA combined */}
+      <section style={{ padding: '140px 40px 120px', borderTop: '1px solid #1c1915' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+          <Reveal>
+            <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 28 }}>
+              — one plan, one price
+            </p>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <h2 className="serif" style={{ fontSize: 'clamp(72px,12vw,160px)', fontWeight: 400, color: '#ece7da', letterSpacing: -4, lineHeight: 1, marginBottom: 16 }}>
+              $1.99
+            </h2>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <p className="serif" style={{ fontSize: 18, color: '#a8a294', fontStyle: 'italic', marginBottom: 12 }}>
+              per month.
+            </p>
+          </Reveal>
+          <Reveal delay={0.4}>
+            <p style={{ fontSize: 14, color: '#8a8478', lineHeight: 1.9, maxWidth: 420, margin: '0 auto 56px', letterSpacing: 0.3 }}>
+              Less than a single coffee. The first seven days are free, no charge taken. Leave from inside whenever you wish — the door is unlocked.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.55}>
+            <div style={{ maxWidth: 480, margin: '0 auto' }}>
+              <div className="row" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 14, gap: 14, marginBottom: 18 }}>
+                <span style={{ color: '#7a7468', fontSize: 14 }}>&gt;</span>
+                <input
+                  ref={ctaEmailRef}
+                  type="email"
+                  placeholder="your email address"
+                  onKeyDown={onEmailKey(ctaEmailRef)}
+                  style={{ background: 'none', border: 'none', fontSize: 16, color: '#ece7da', flex: 1, letterSpacing: 0.3, padding: '4px 0', textAlign: 'left' }}
+                />
+                <button
+                  onClick={() => openModal(ctaEmailRef.current?.value || '')}
+                  className="submit"
+                  style={{ background: '#c4a86b', border: 'none', color: '#0a0907', padding: '11px 22px', fontSize: 11, cursor: 'pointer', letterSpacing: 2.5, whiteSpace: 'nowrap', textTransform: 'uppercase', fontWeight: 700 }}
+                >
+                  begin <span className="arrow">→</span>
+                </button>
               </div>
-            ))}
-          </div>
-
-          <p style={{ fontSize: 13, color: '#8a8478', marginTop: 28, lineHeight: 1.85, letterSpacing: 0.3 }}>
-            That edition went to one reader. Yours will be different — your subjects, your obsessions, your morning.
-          </p>
-
-          <button
-            onClick={() => openModal()}
-            className="submit"
-            style={{ marginTop: 40, background: 'none', border: '1px solid #2a2620', color: '#c8c4b8', padding: '14px 28px', fontSize: 12, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}
-          >
-            begin your trial <span className="arrow">→</span>
-          </button>
+              <p className="serif" style={{ fontSize: 15, color: '#7a7468', fontStyle: 'italic', letterSpacing: 0.3, marginTop: 12 }}>
+                Your first edition arrives tomorrow morning.
+              </p>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: '32px 40px', borderTop: '1px solid #1c1915', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: 5, textTransform: 'uppercase', color: '#8a8478' }}>Sift</span>
+      <footer style={{ padding: '36px 40px', borderTop: '1px solid #1c1915', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+        <span className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: 0.5, color: '#a8a294' }}>Sift</span>
         <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-          {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>{l}</a>)}
+          {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" className="link" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>{l}</a>)}
         </div>
-        <span style={{ fontSize: 12, color: '#5a564c', letterSpacing: 0.5 }}>© 2025 Sift</span>
+        <span style={{ fontSize: 12, color: '#5a564c', letterSpacing: 0.5 }}>© 2025 Sift &nbsp;·&nbsp; written nightly</span>
       </footer>
 
       {/* Modal */}
       {modal && (
         <div
           onClick={e => { if (e.target === e.currentTarget) setModal(false) }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, animation: 'appear 0.3s ease' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(5,4,3,0.94)', backdropFilter: 'blur(8px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, animation: 'appear 0.35s ease' }}
         >
-          <div style={{ background: '#0e0d0a', border: '1px solid #1c1915', padding: '44px 40px', maxWidth: 420, width: '100%', position: 'relative' }}>
+          <div style={{ background: '#0e0c09', border: '1px solid #2a2620', padding: '48px 44px', maxWidth: 440, width: '100%', position: 'relative' }}>
             <button
               onClick={() => setModal(false)}
-              style={{ position: 'absolute', top: 18, right: 22, background: 'none', border: 'none', color: '#3a3630', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}
+              style={{ position: 'absolute', top: 18, right: 22, background: 'none', border: 'none', color: '#5a564c', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}
             >×</button>
 
-            <p style={{ fontSize: 11, color: '#5a564c', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 36 }}>
-              {step === 1 ? 'step 01 / 02' : 'step 02 / 02'}
+            <p style={{ fontSize: 11, color: '#7a7468', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 }}>
+              {step === 1 ? 'step 01 of 02' : 'step 02 of 02'}
             </p>
+            <p className="serif" style={{ fontSize: 26, fontWeight: 500, color: '#ece7da', marginBottom: 6, letterSpacing: -0.3 }}>
+              {step === 1 ? 'Begin your trial.' : 'Choose your subjects.'}
+            </p>
+            <p style={{ fontSize: 13, color: '#8a8478', marginBottom: 36, lineHeight: 1.7 }}>
+              {step === 1 ? 'Seven days free, then $1.99 per month. Cancel from inside whenever you wish.' : 'Type anything and press enter. As specific as you like — the more particular, the better the briefing.'}
+            </p>
+
+            {error && <p style={{ color: '#c47a5a', fontSize: 12, marginBottom: 20, letterSpacing: 0.3 }}>{error}</p>}
 
             {step === 1 && (
               <>
-                <h3 style={{ fontSize: 22, fontWeight: 400, color: '#e6e1d4', marginBottom: 8, letterSpacing: -0.3 }}>
-                  create your account
-                </h3>
-                <p style={{ fontSize: 13, color: '#5a564c', marginBottom: 40, lineHeight: 1.7 }}>seven days free, then $1.99 / month.</p>
-
-                {error && <p style={{ color: '#9a5a4a', fontSize: 12, marginBottom: 20, letterSpacing: 0.3 }}>{error}</p>}
-
                 {[
                   { label: 'name', val: name, set: setName, type: 'text', ph: 'your name' },
                   { label: 'email', val: email, set: setEmail, type: 'email', ph: 'your email' },
                   { label: 'password', val: password, set: setPassword, type: 'password', ph: '8+ characters' },
                 ].map(f => (
-                  <div key={f.label} style={{ marginBottom: 26 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #1c1915', paddingBottom: 10, gap: 16 }}>
-                      <span style={{ fontSize: 11, color: '#5a564c', letterSpacing: 2, minWidth: 64 }}>{f.label}</span>
+                  <div key={f.label} style={{ marginBottom: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 10, gap: 16 }}>
+                      <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, minWidth: 64, textTransform: 'uppercase' }}>{f.label}</span>
                       <input
                         type={f.type}
                         value={f.val}
                         onChange={e => f.set(e.target.value)}
                         placeholder={f.ph}
-                        style={{ background: 'none', border: 'none', fontSize: 14, color: '#e6e1d4', flex: 1, letterSpacing: 0.2 }}
+                        style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1, letterSpacing: 0.2 }}
                       />
                     </div>
                   </div>
@@ -249,49 +442,41 @@ export default function Home() {
                   onClick={handleSignup}
                   disabled={loading}
                   className="submit"
-                  style={{ marginTop: 12, width: '100%', background: 'none', border: '1px solid #2a2620', color: '#c8c4b8', padding: '14px', fontSize: 12, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase', opacity: loading ? 0.4 : 1 }}
+                  style={{ marginTop: 16, width: '100%', background: '#c4a86b', border: 'none', color: '#0a0907', padding: '15px', fontSize: 12, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 700, opacity: loading ? 0.5 : 1 }}
                 >
                   {loading ? 'one moment...' : <>continue <span className="arrow">→</span></>}
                 </button>
+                <p style={{ fontSize: 11, color: '#5a564c', textAlign: 'center', marginTop: 14, letterSpacing: 1 }}>no payment taken today.</p>
               </>
             )}
 
             {step === 2 && (
               <>
-                <h3 style={{ fontSize: 22, fontWeight: 400, color: '#e6e1d4', marginBottom: 8, letterSpacing: -0.3 }}>
-                  what do you follow
-                </h3>
-                <p style={{ fontSize: 13, color: '#5a564c', marginBottom: 40, lineHeight: 1.7 }}>
-                  type anything. press enter. as specific as you like.
-                </p>
-
-                {error && <p style={{ color: '#9a5a4a', fontSize: 12, marginBottom: 16, letterSpacing: 0.3 }}>{error}</p>}
-
                 <div
                   onClick={() => topicInputRef.current?.focus()}
-                  style={{ minHeight: 100, borderBottom: '1px solid #1c1915', paddingBottom: 16, marginBottom: 32, cursor: 'text' }}
+                  style={{ minHeight: 110, borderBottom: '1px solid #2a2620', paddingBottom: 16, marginBottom: 32, cursor: 'text' }}
                 >
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: topics.length ? 14 : 0 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: topics.length ? 14 : 0 }}>
                     {topics.map(t => (
-                      <span key={t} style={{ fontSize: 12, color: '#9a9384', letterSpacing: 0.3 }}>
+                      <span key={t} style={{ fontSize: 13, color: '#dad5c8', letterSpacing: 0.3, display: 'inline-flex', alignItems: 'center' }}>
                         [{t}
                         <button
                           onClick={() => setTopics(p => p.filter(x => x !== t))}
-                          style={{ background: 'none', border: 'none', color: '#3a3630', cursor: 'pointer', fontSize: 13, padding: '0 0 0 4px' }}
+                          style={{ background: 'none', border: 'none', color: '#5a564c', cursor: 'pointer', fontSize: 13, padding: '0 0 0 4px' }}
                         >×</button>]
                       </span>
                     ))}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ color: '#5a564c', fontSize: 13 }}>&gt;</span>
+                    <span style={{ color: '#7a7468', fontSize: 13 }}>&gt;</span>
                     <input
                       ref={topicInputRef}
                       value={topicInput}
                       onChange={e => setTopicInput(e.target.value)}
                       onKeyDown={onTopicKey}
                       onBlur={addTopic}
-                      placeholder={topics.length ? '' : 'byzantine history, formula 1...'}
-                      style={{ background: 'none', border: 'none', fontSize: 14, color: '#e6e1d4', flex: 1 }}
+                      placeholder={topics.length ? '' : 'byzantine history, formula 1, venture capital...'}
+                      style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1 }}
                     />
                   </div>
                 </div>
@@ -300,11 +485,11 @@ export default function Home() {
                   onClick={handleFinish}
                   disabled={loading}
                   className="submit"
-                  style={{ width: '100%', background: 'none', border: '1px solid #2a2620', color: '#c8c4b8', padding: '14px', fontSize: 12, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase', opacity: loading ? 0.4 : 1 }}
+                  style={{ width: '100%', background: '#c4a86b', border: 'none', color: '#0a0907', padding: '15px', fontSize: 12, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 700, opacity: loading ? 0.5 : 1 }}
                 >
                   {loading ? 'redirecting...' : <>continue to payment <span className="arrow">→</span></>}
                 </button>
-                <p style={{ fontSize: 11, color: '#3a3630', textAlign: 'center', marginTop: 16, letterSpacing: 1 }}>no charge for seven days.</p>
+                <p style={{ fontSize: 11, color: '#5a564c', textAlign: 'center', marginTop: 14, letterSpacing: 1 }}>no charge for seven days.</p>
               </>
             )}
           </div>
