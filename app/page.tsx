@@ -27,6 +27,68 @@ function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }
   )
 }
 
+const LINE1 = 'Your morning dose'
+const LINE2 = 'of knowledge.'
+const LINE3 = 'Written for you alone.'
+
+function HeadlineTypewriter({ onDone }: { onDone: () => void }) {
+  const [shown, setShown] = useState(0)
+  const [hideCursor, setHideCursor] = useState(false)
+  const total = LINE1.length + LINE2.length + LINE3.length
+
+  useEffect(() => {
+    let cancelled = false
+    const tick = (i: number) => {
+      if (cancelled) return
+      if (i > total) {
+        onDone()
+        setTimeout(() => { if (!cancelled) setHideCursor(true) }, 1200)
+        return
+      }
+      setShown(i)
+      const atLine1End = i === LINE1.length
+      const atLine2End = i === LINE1.length + LINE2.length
+      const delay = atLine1End ? 280 : atLine2End ? 380 : 38 + Math.random() * 28
+      setTimeout(() => tick(i + 1), delay)
+    }
+    const start = setTimeout(() => tick(0), 600)
+    return () => { cancelled = true; clearTimeout(start) }
+  }, [])
+
+  const l1 = LINE1.slice(0, Math.min(shown, LINE1.length))
+  const l2 = shown > LINE1.length ? LINE2.slice(0, Math.min(shown - LINE1.length, LINE2.length)) : ''
+  const l3 = shown > LINE1.length + LINE2.length ? LINE3.slice(0, shown - LINE1.length - LINE2.length) : ''
+
+  const onLine1 = shown <= LINE1.length
+  const onLine2 = !onLine1 && shown <= LINE1.length + LINE2.length
+
+  const cursor = !hideCursor && (
+    <span style={{
+      display: 'inline-block',
+      width: '0.55em',
+      height: '0.86em',
+      background: 'currentColor',
+      verticalAlign: '-0.04em',
+      marginLeft: 4,
+      animation: 'blink 1.05s step-end infinite',
+    }} />
+  )
+
+  return (
+    <>
+      {l1}{onLine1 && cursor}
+      {shown > LINE1.length && <br />}
+      {shown > LINE1.length && <>{l2}{onLine2 && cursor}</>}
+      {shown > LINE1.length + LINE2.length && <br />}
+      {shown > LINE1.length + LINE2.length && (
+        <em style={{ fontStyle: 'italic', color: '#c4a86b' }}>
+          {l3}{!onLine1 && !onLine2 && cursor}
+        </em>
+      )}
+    </>
+  )
+}
+
 export default function Home() {
   const supabase = createClient()
   const [modal, setModal] = useState(false)
@@ -38,6 +100,7 @@ export default function Home() {
   const [topicInput, setTopicInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [typingDone, setTypingDone] = useState(false)
   const heroEmailRef = useRef<HTMLInputElement>(null)
   const ctaEmailRef = useRef<HTMLInputElement>(null)
   const topicInputRef = useRef<HTMLInputElement>(null)
@@ -46,6 +109,12 @@ export default function Home() {
     document.body.style.overflow = modal ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [modal])
+
+  const reveal = (delay: number) => ({
+    opacity: typingDone ? 1 : 0,
+    transform: typingDone ? 'none' : 'translateY(12px)',
+    transition: `opacity 1s cubic-bezier(.2,.7,.2,1) ${delay}s, transform 1s cubic-bezier(.2,.7,.2,1) ${delay}s`,
+  })
 
   function openModal(prefill = '') {
     if (prefill) setEmail(prefill)
@@ -157,16 +226,15 @@ export default function Home() {
             <span>For one reader</span>
           </div>
 
-          <h1 className="a3 serif" style={{ fontSize: 'clamp(48px,7.5vw,92px)', fontWeight: 400, color: '#ece7da', lineHeight: 1.02, letterSpacing: -1.5, marginBottom: 28 }}>
-            The morning brief.<br />
-            <em style={{ fontStyle: 'italic', color: '#c4a86b' }}>Yours, and yours alone.</em>
+          <h1 className="serif" style={{ fontSize: 'clamp(44px,7vw,86px)', fontWeight: 400, color: '#ece7da', lineHeight: 1.08, letterSpacing: -1.5, marginBottom: 32, minHeight: '3.3em' }}>
+            <HeadlineTypewriter onDone={() => setTypingDone(true)} />
           </h1>
 
-          <p className="a4" style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 56, maxWidth: 520 }}>
+          <p style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 56, maxWidth: 520, ...reveal(0.1) }}>
             Each edition is composed nightly, for a single reader, around the subjects you choose to follow. Nothing else gets through.
           </p>
 
-          <div className="a5" style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16, ...reveal(0.3) }}>
             <div className="row" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 14, gap: 14 }}>
               <span style={{ color: '#7a7468', fontSize: 14 }}>&gt;</span>
               <input
@@ -186,14 +254,14 @@ export default function Home() {
             </div>
           </div>
 
-          <p className="a6" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18 }}>
+          <p style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18, ...reveal(0.5) }}>
             $1.99 / month &nbsp;·&nbsp; first seven days free &nbsp;·&nbsp; leave from inside, anytime
           </p>
 
         </div>
 
         {/* Subtle scroll cue */}
-        <div className="a6" style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: '#3a352d', letterSpacing: 3, textTransform: 'uppercase' }}>
+        <div style={{ position: 'absolute', bottom: 36, left: '50%', transform: typingDone ? 'translateX(-50%)' : 'translateX(-50%) translateY(12px)', fontSize: 11, color: '#3a352d', letterSpacing: 3, textTransform: 'uppercase', opacity: typingDone ? 1 : 0, transition: 'opacity 1s ease 0.7s, transform 1s ease 0.7s' }}>
           continue ↓
         </div>
       </main>
