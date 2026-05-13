@@ -123,7 +123,7 @@ export default function Home() {
               Get started
             </button>
           </div>
-          <p style={{ fontSize: 13, color: '#4a4840' }}>$1 per month. 7-day free trial. Cancel anytime.</p>
+          <p style={{ fontSize: 13, color: '#4a4840' }}>$1.99 per month. 7-day free trial. Cancel anytime.</p>
         </div>
       </section>
 
@@ -229,7 +229,7 @@ export default function Home() {
             <div>
               <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 20 }}>Pricing</p>
               <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 500, lineHeight: 1.2, letterSpacing: -0.5, marginBottom: 16, color: '#ede8df' }}>
-                One plan.<br />One dollar a month.
+                One plan.<br />$1.99 a month.
               </h2>
               <p style={{ fontSize: 15, color: '#7a7468', lineHeight: 1.8 }}>No tiers. No upsells. No annual trap. Just your daily briefing for less than a cup of tea.</p>
             </div>
@@ -280,7 +280,7 @@ export default function Home() {
             <button onClick={() => openModal()} style={{ background: '#c9a96e', border: 'none', color: '#0e0d0b', padding: '14px 28px', borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
               Start your free trial
             </button>
-            <span style={{ fontSize: 13, color: '#4a4840' }}>$1/month. 7 days free. Cancel anytime.</span>
+            <span style={{ fontSize: 13, color: '#4a4840' }}>$1.99/month. 7 days free. Cancel anytime.</span>
           </div>
         </div>
       </section>
@@ -314,7 +314,7 @@ export default function Home() {
             {step === 1 && (
               <>
                 <h3 className="serif" style={{ fontSize: 26, fontWeight: 500, marginBottom: 6, color: '#ede8df' }}>Create your account</h3>
-                <p style={{ fontSize: 14, color: '#7a7468', marginBottom: 28 }}>7 days free — then $1/month. No card needed today.</p>
+                <p style={{ fontSize: 14, color: '#7a7468', marginBottom: 28 }}>7 days free — then $1.99/month. No card needed today.</p>
                 {error && <p style={{ color: '#e07070', fontSize: 13, marginBottom: 16 }}>{error}</p>}
                 {[
                   { label: 'Your name', val: name, set: setName, type: 'text', ph: 'Alex' },
@@ -364,7 +364,7 @@ export default function Home() {
 
                 <button onClick={handleTopicsContinue} disabled={loading}
                   style={{ width: '100%', padding: '13px', background: '#c9a96e', border: 'none', borderRadius: 6, color: '#0e0d0b', fontWeight: 600, fontSize: 14, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
-                  {loading ? 'Redirecting to payment…' : 'Continue to payment — $1/month'}
+                  {loading ? 'Redirecting to payment…' : 'Continue to payment — $1.99/month'}
                 </button>
                 <p style={{ fontSize: 12, color: '#4a4840', textAlign: 'center' as const, marginTop: 14 }}>No charge for 7 days. Cancel before then and pay nothing.</p>
               </>
