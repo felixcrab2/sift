@@ -95,11 +95,16 @@ Rules:
 - Do not pad. Do not repeat. Do not summarise the article — extend it.
 - Total: ~600 words.
 
-Output only clean HTML using: <h3>, <p>, <em>, <strong>, <hr>. No divs, no classes, no inline styles. Use <h3> for story headlines, <p> for body, <em> for "Why it matters:" and "One more thing —" lines.`,
+Output only clean HTML using: <h3>, <p>, <em>, <strong>, <hr>. No divs, no classes, no inline styles. Use <h3> for story headlines, <p> for body, <em> for "Why it matters:" and "One more thing —" lines. Do NOT wrap your output in markdown code fences (no \`\`\`html or \`\`\`). Begin directly with the first <h3> tag.`,
     }],
   })
 
-  return (msg.content[0] as { type: string; text: string }).text
+  const raw = (msg.content[0] as { type: string; text: string }).text
+  return raw
+    .trim()
+    .replace(/^```(?:html)?\s*\n?/i, '')
+    .replace(/\n?```\s*$/i, '')
+    .trim()
 }
 
 export function emailTemplate(name: string, content: string, date: string): string {
