@@ -91,49 +91,49 @@ export default function Home() {
       `}</style>
 
       {/* Header */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '24px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="a1" style={{ fontSize: 11, letterSpacing: 5, textTransform: 'uppercase', color: '#5a564c' }}>Sift</span>
-        <button onClick={() => openModal()} className="a1" style={{ background: 'none', border: 'none', fontSize: 11, color: '#5a564c', cursor: 'pointer', letterSpacing: 2 }}>sign in</button>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '22px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="a1" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 6, textTransform: 'uppercase', color: '#e6e1d4' }}>Sift</span>
+        <button onClick={() => openModal()} className="a1" style={{ background: 'none', border: 'none', fontSize: 12, color: '#9a9384', cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign in</button>
       </header>
 
       {/* Hero — single confident screen */}
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 40px 80px', position: 'relative' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', width: '100%' }}>
 
-          <p className="a2" style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#5a564c', marginBottom: 56 }}>
+          <p className="a2" style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#8a8478', marginBottom: 56 }}>
             — a daily briefing
           </p>
 
-          <h1 className="a3" style={{ fontSize: 'clamp(34px,5vw,54px)', fontWeight: 400, color: '#e6e1d4', lineHeight: 1.35, letterSpacing: -0.5, marginBottom: 28 }}>
+          <h1 className="a3" style={{ fontSize: 'clamp(34px,5vw,54px)', fontWeight: 400, color: '#ece7da', lineHeight: 1.35, letterSpacing: -0.5, marginBottom: 28 }}>
             The internet,<br />
             written for you alone.
           </h1>
 
-          <p className="a4" style={{ fontSize: 16, color: '#7a7468', lineHeight: 1.85, marginBottom: 64, maxWidth: 480 }}>
+          <p className="a4" style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 64, maxWidth: 480 }}>
             Every morning, a briefing arrives in your inbox — shaped around the subjects you follow, no two readers receive the same one.
           </p>
 
           <div className="a5" style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 14, gap: 14 }}>
-              <span style={{ color: '#5a564c', fontSize: 14 }}>&gt;</span>
+              <span style={{ color: '#7a7468', fontSize: 14 }}>&gt;</span>
               <input
                 ref={heroEmailRef}
                 type="email"
                 placeholder="your email address"
                 onKeyDown={onHeroEmailKey}
-                style={{ background: 'none', border: 'none', fontSize: 15, color: '#e6e1d4', flex: 1, letterSpacing: 0.3 }}
+                style={{ background: 'none', border: 'none', fontSize: 15, color: '#ece7da', flex: 1, letterSpacing: 0.3 }}
               />
               <button
                 onClick={() => openModal(heroEmailRef.current?.value || '')}
                 className="submit"
-                style={{ background: 'none', border: 'none', fontSize: 12, color: '#9a9384', cursor: 'pointer', letterSpacing: 2, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
+                style={{ background: 'none', border: 'none', fontSize: 12, color: '#c8c4b8', cursor: 'pointer', letterSpacing: 2, whiteSpace: 'nowrap', textTransform: 'uppercase' }}
               >
                 begin <span className="arrow">→</span>
               </button>
             </div>
           </div>
 
-          <p className="a6" style={{ fontSize: 12, color: '#3a3630', letterSpacing: 0.5, marginTop: 18 }}>
+          <p className="a6" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18 }}>
             $1.99 / month &nbsp;·&nbsp; seven days free &nbsp;·&nbsp; cancel anytime
           </p>
 
@@ -143,7 +143,7 @@ export default function Home() {
         <button
           onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
           className="a6"
-          style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', background: 'none', border: 'none', color: '#3a3630', fontSize: 11, letterSpacing: 2, cursor: 'pointer', textTransform: 'uppercase' }}
+          style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', background: 'none', border: 'none', color: '#7a7468', fontSize: 12, letterSpacing: 2, cursor: 'pointer', textTransform: 'uppercase' }}
         >
           a sample ↓
         </button>
@@ -152,33 +152,33 @@ export default function Home() {
       {/* Sample preview — what you actually get */}
       <section id="preview" style={{ minHeight: '100vh', padding: '120px 40px', borderTop: '1px solid #161310', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', width: '100%' }}>
-          <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#5a564c', marginBottom: 32 }}>
+          <p style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#8a8478', marginBottom: 32 }}>
             — a recent edition
           </p>
 
-          <div style={{ border: '1px solid #1c1915', padding: '36px 40px', background: '#0e0d0a' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, paddingBottom: 16, borderBottom: '1px solid #1c1915' }}>
-              <span style={{ fontSize: 12, letterSpacing: 4, color: '#7a7468', textTransform: 'uppercase' }}>Sift</span>
-              <span style={{ fontSize: 11, color: '#3a3630', letterSpacing: 1 }}>Wed, 13 May</span>
+          <div style={{ border: '1px solid #2a2620', padding: '36px 40px', background: '#0e0d0a' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, paddingBottom: 16, borderBottom: '1px solid #2a2620' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: 4, color: '#ece7da', textTransform: 'uppercase' }}>Sift</span>
+              <span style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>Wed, 13 May</span>
             </div>
 
-            <p style={{ fontSize: 11, letterSpacing: 2, color: '#5a564c', textTransform: 'uppercase', marginBottom: 8 }}>good morning, alex</p>
-            <p style={{ fontSize: 18, color: '#e6e1d4', marginBottom: 36, fontStyle: 'italic' }}>your briefing is ready.</p>
+            <p style={{ fontSize: 11, letterSpacing: 2, color: '#8a8478', textTransform: 'uppercase', marginBottom: 8 }}>good morning, alex</p>
+            <p style={{ fontSize: 18, color: '#ece7da', marginBottom: 36, fontStyle: 'italic' }}>your briefing is ready.</p>
 
             {[
               { tag: 'quantum computing', headline: 'IBM\'s 1,000-qubit prototype hits coherence threshold.', body: 'A milestone the field has been chasing for half a decade. The implications for cryptography are not subtle.' },
               { tag: 'venture capital', headline: 'A quiet down-round in the AI infrastructure space.', body: 'The valuation correction nobody wanted to write about. But the underlying business is, by most accounts, still real.' },
               { tag: 'central banking', headline: 'The ECB hints at an unusual policy divergence.', body: 'Lagarde\'s phrasing was specific. Markets noticed; analysts are still parsing what she chose not to say.' },
             ].map((s, i) => (
-              <div key={i} style={{ marginBottom: 28, paddingBottom: i < 2 ? 28 : 0, borderBottom: i < 2 ? '1px solid #1c1915' : 'none' }}>
-                <p style={{ fontSize: 10, letterSpacing: 2, color: '#5a564c', textTransform: 'uppercase', marginBottom: 8 }}>{s.tag}</p>
-                <p style={{ fontSize: 15, color: '#c8c4b8', lineHeight: 1.55, marginBottom: 8 }}>{s.headline}</p>
-                <p style={{ fontSize: 13, color: '#6a6458', lineHeight: 1.7 }}>{s.body}</p>
+              <div key={i} style={{ marginBottom: 28, paddingBottom: i < 2 ? 28 : 0, borderBottom: i < 2 ? '1px solid #2a2620' : 'none' }}>
+                <p style={{ fontSize: 11, letterSpacing: 2, color: '#9a9384', textTransform: 'uppercase', marginBottom: 8 }}>{s.tag}</p>
+                <p style={{ fontSize: 15, color: '#dad5c8', lineHeight: 1.55, marginBottom: 8 }}>{s.headline}</p>
+                <p style={{ fontSize: 13, color: '#8a8478', lineHeight: 1.75 }}>{s.body}</p>
               </div>
             ))}
           </div>
 
-          <p style={{ fontSize: 12, color: '#3a3630', marginTop: 28, lineHeight: 1.85, letterSpacing: 0.3 }}>
+          <p style={{ fontSize: 13, color: '#8a8478', marginTop: 28, lineHeight: 1.85, letterSpacing: 0.3 }}>
             That edition went to one reader. Yours will be different — your subjects, your obsessions, your morning.
           </p>
 
@@ -193,11 +193,12 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: '28px 40px', borderTop: '1px solid #161310', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 11, color: '#2a2620', letterSpacing: 2 }}>SIFT &nbsp;·&nbsp; mmxxv</span>
-        <div style={{ display: 'flex', gap: 28 }}>
-          {['privacy', 'terms', 'contact'].map(l => <a key={l} href="#" style={{ fontSize: 11, color: '#2a2620', letterSpacing: 1 }}>{l}</a>)}
+      <footer style={{ padding: '32px 40px', borderTop: '1px solid #1c1915', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: 5, textTransform: 'uppercase', color: '#8a8478' }}>Sift</span>
+        <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+          {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>{l}</a>)}
         </div>
+        <span style={{ fontSize: 12, color: '#5a564c', letterSpacing: 0.5 }}>© 2025 Sift</span>
       </footer>
 
       {/* Modal */}
