@@ -2,7 +2,9 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-async function searchTopic(topic: string): Promise<{ title: string; content: string }[]> {
+export type SourceItem = { topic: string; title: string; content: string; url: string }
+
+async function searchTopic(topic: string): Promise<{ title: string; content: string; url: string }[]> {
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method: 'POST',
@@ -11,38 +13,56 @@ async function searchTopic(topic: string): Promise<{ title: string; content: str
         api_key: process.env.TAVILY_API_KEY,
         query: `recent developments, notable writing, and specific findings on: ${topic}`,
         search_depth: 'advanced',
-        max_results: 8,
+        max_results: 10,
         days: 7,
       }),
       signal: AbortSignal.timeout(12000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    return (data.results ?? []).slice(0, 5).map((r: any) => ({
+    return (data.results ?? []).slice(0, 8).map((r: any) => ({
       title: r.title ?? '',
       content: (r.content ?? '').slice(0, 800),
+      url: r.url ?? '',
     }))
   } catch {
     return []
   }
 }
 
-export async function generateNewsletter(name: string, topics: string[]): Promise<string> {
+export async function gatherSources(topics: string[]): Promise<SourceItem[]> {
+  const perTopic = await Promise.all(topics.map(async topic => {
+    const items = await searchTopic(topic)
+    return items.map(i => ({ ...i, topic }))
+  }))
+  const seen = new Set<string>()
+  const flat: SourceItem[] = []
+  for (const row of perTopic) {
+    for (const item of row) {
+      if (!item.url || seen.has(item.url)) continue
+      seen.add(item.url)
+      flat.push(item)
+    }
+  }
+  return flat
+}
+
+export async function generateNewsletter(name: string, topics: string[], sources: SourceItem[]): Promise<string> {
+  if (!sources.length) throw new Error('No source material to generate from')
+
   const today = new Date().toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
 
-  const searches = await Promise.all(topics.map(async t => ({
-    topic: t,
-    results: await searchTopic(t),
-  })))
+  const byTopic = new Map<string, SourceItem[]>()
+  for (const s of sources) {
+    if (!byTopic.has(s.topic)) byTopic.set(s.topic, [])
+    byTopic.get(s.topic)!.push(s)
+  }
 
-  const context = searches
-    .filter(s => s.results.length > 0)
-    .map(s => `=== ${s.topic} ===\n${s.results.map(r => `• ${r.title}\n  ${r.content}`).join('\n\n')}`)
+  const context = [...byTopic.entries()]
+    .map(([t, items]) => `=== ${t} ===\n${items.map(i => `• ${i.title}\n  ${i.content}`).join('\n\n')}`)
     .join('\n\n---\n\n')
-
-  if (!context) throw new Error('No search results returned')
 
   const msg = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -54,18 +74,20 @@ export async function generateNewsletter(name: string, topics: string[]): Promis
 Date: ${today}
 Their chosen subjects: ${topics.join(', ')}
 
-Source material gathered from across the web today:
+Source material gathered from across the web today (grouped by subject):
 
 ${context}
 
-Write 3 stories, each centred on one of their subjects. For each:
+Write 3 to 5 stories. Use editorial judgement about distribution — do not mechanically tick a box for each subject. If one subject yields multiple interesting threads today, run two stories from it. If another has nothing worth reading, skip it entirely; the reader trusts you to make that call. Vary the order day to day — do not always lead with the same kind of subject.
+
+For each story:
 - A sharp, specific headline. Name people, places, institutions, sums of money. Avoid vague abstractions.
-- 4–6 sentences of clear, intelligent prose. Include concrete detail: who said what, when, the dollar/euro figure, the methodology, the institution, the historical precedent. Beneath the surface is the part to read carefully — surface up the second-order point that a casual reader would miss.
+- 4–6 sentences of clear, intelligent prose. Include concrete detail: who said what, when, the dollar or euro figure, the methodology, the institution, the historical precedent. Beneath the surface is the part to read carefully — surface up the second-order point a casual reader would miss.
 - One sentence beginning with "Why it matters:" in italics — sharp, second-order implication, not a recap.
 
 End with a section titled "One more thing —" (italicised). Two or three sentences on something surprising, specific, or delightful drawn from any of their subjects. A detail, an anecdote, an unexpected connection.
 
-Voice: a brilliant, well-read friend. Warm, precise, slightly understated. The reader is intelligent and follows these subjects already; assume they don't need the basics explained. Reach for the niche detail, not the headline. If a topic is obscure, lean into it — that is the entire point of the briefing.
+Voice: a brilliant, well-read friend. Warm, precise, slightly understated. The reader is intelligent and follows these subjects already; assume they do not need the basics explained. Reach for the niche detail, not the headline. If a topic is obscure, lean into it — that is the entire point.
 
 Rules:
 - Flowing prose only. No bullet points within stories.

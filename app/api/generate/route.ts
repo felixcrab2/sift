@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { generateNewsletter, emailTemplate, clusterKey } from '@/lib/newsletter'
+import { generateNewsletter, gatherSources, emailTemplate, clusterKey } from '@/lib/newsletter'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+const DEDUPE_WINDOW_DAYS = 30
+const MIN_FRESH_SOURCES = 4
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -30,6 +33,7 @@ export async function GET(req: NextRequest) {
 
   let sent = 0
   const today = new Date().toISOString().split('T')[0]
+  const cutoff = new Date(Date.now() - DEDUPE_WINDOW_DAYS * 86400000).toISOString().split('T')[0]
   const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
@@ -43,9 +47,28 @@ export async function GET(req: NextRequest) {
 
     let content = cached?.content
     if (!content) {
+      const allSources = await gatherSources(topics)
+      if (!allSources.length) continue
+
+      const { data: sentRows } = await supabase
+        .from('sent_articles')
+        .select('url')
+        .eq('cluster_key', key)
+        .gte('sent_date', cutoff)
+      const seen = new Set((sentRows ?? []).map(r => r.url))
+
+      const fresh = allSources.filter(s => !seen.has(s.url))
+      const sources = fresh.length >= MIN_FRESH_SOURCES ? fresh : allSources
+
       const firstName = (users[0] as any).profiles?.name?.split(' ')[0] || 'there'
-      content = await generateNewsletter(firstName, topics)
+      content = await generateNewsletter(firstName, topics, sources)
+
       await supabase.from('newsletter_cache').insert({ cluster_key: key, content, sent_date: today })
+
+      const rows = sources.map(s => ({ cluster_key: key, url: s.url, sent_date: today }))
+      if (rows.length) {
+        await supabase.from('sent_articles').upsert(rows, { onConflict: 'cluster_key,url', ignoreDuplicates: true })
+      }
     }
 
     for (const user of users) {

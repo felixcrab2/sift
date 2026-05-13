@@ -34,6 +34,15 @@ create table public.newsletter_cache (
   unique(cluster_key, sent_date)
 );
 
+create table public.sent_articles (
+  cluster_key text not null,
+  url text not null,
+  sent_date date not null default current_date,
+  created_at timestamptz not null default now(),
+  primary key (cluster_key, url)
+);
+create index sent_articles_cluster_date_idx on public.sent_articles (cluster_key, sent_date);
+
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
@@ -55,6 +64,7 @@ alter table public.profiles enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.interests enable row level security;
 alter table public.newsletter_cache enable row level security;
+alter table public.sent_articles enable row level security;
 
 create policy "Users can read own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
@@ -65,3 +75,4 @@ create policy "Service role full access profiles" on public.profiles for all usi
 create policy "Service role full access subscriptions" on public.subscriptions for all using (auth.role() = 'service_role');
 create policy "Service role full access interests" on public.interests for all using (auth.role() = 'service_role');
 create policy "Service role full access cache" on public.newsletter_cache for all using (auth.role() = 'service_role');
+create policy "Service role full access sent_articles" on public.sent_articles for all using (auth.role() = 'service_role');
