@@ -33,10 +33,12 @@ export async function GET(req: NextRequest) {
   }
 
   let sent = 0
+  const errors: string[] = []
   const today = new Date().toISOString().split('T')[0]
   const cutoff = new Date(Date.now() - DEDUPE_WINDOW_DAYS * 86400000).toISOString().split('T')[0]
   const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const fromAddress = process.env.RESEND_FROM ?? 'Sift <onboarding@resend.dev>'
 
   for (const [key, { users, topics }] of clusters) {
     const { data: cached } = await supabase
@@ -82,15 +84,19 @@ export async function GET(req: NextRequest) {
         .replace('{{dashboard_url}}', `${appUrl}/dashboard`)
         .replace('{{unsubscribe_url}}', `${appUrl}/unsubscribe`)
 
-      await resend.emails.send({
-        from: 'Sift <hello@sift-daily.com>',
+      const result = await resend.emails.send({
+        from: fromAddress,
         to: profile.email,
         subject: `Your Sift briefing — ${dateLabel}`,
         html,
       })
+      if (result.error) {
+        errors.push(`${profile.email}: ${result.error.message}`)
+        continue
+      }
       sent++
     }
   }
 
-  return NextResponse.json({ sent, clusters: clusters.size })
+  return NextResponse.json({ sent, clusters: clusters.size, errors: errors.length ? errors : undefined })
 }

@@ -38,12 +38,17 @@ export async function POST(req: NextRequest) {
     .replace('{{dashboard_url}}', `${appUrl}/dashboard`)
     .replace('{{unsubscribe_url}}', `${appUrl}/unsubscribe`)
 
-  await resend.emails.send({
-    from: 'Sift <hello@sift-daily.com>',
+  const fromAddress = process.env.RESEND_FROM ?? 'Sift <onboarding@resend.dev>'
+  const result = await resend.emails.send({
+    from: fromAddress,
     to: user.email!,
     subject: `[Test] Your Sift briefing — ${dateLabel}`,
     html,
   })
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error.message, sentTo: user.email }, { status: 502 })
+  }
 
   return NextResponse.json({ ok: true, sentTo: user.email, dailyTopics })
 }
