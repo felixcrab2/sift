@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
         .replace('{{unsubscribe_url}}', `${appUrl}/unsubscribe`)
 
       await resend.emails.send({
-        from: 'Sift <onboarding@resend.dev>',
+        from: 'Sift <hello@sift-daily.com>',
         to: profile.email,
         subject: `Your Sift briefing — ${dateLabel}`,
         html,
