@@ -48,9 +48,7 @@ export default function Home() {
 
   function handleTopicKey(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTopic() }
-    if (e.key === 'Backspace' && !topicInput && topics.length) {
-      setTopics(prev => prev.slice(0, -1))
-    }
+    if (e.key === 'Backspace' && !topicInput && topics.length) setTopics(prev => prev.slice(0, -1))
   }
 
   async function handleSignup() {
@@ -70,98 +68,127 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) await supabase.from('interests').update({ topics }).eq('user_id', user.id)
     setLoading(true)
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
+    const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
     const { url } = await res.json()
     if (url) window.location.href = url
     setLoading(false)
   }
 
+  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=DM+Sans:wght@300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { background: #0e0d0b; color: #ede8df; font-family: 'DM Sans', sans-serif; overflow-x: hidden; line-height: 1.6; }
-        ::selection { background: rgba(201,169,110,0.25); }
+        body { background: #f0ebe0; color: #1a1612; font-family: 'DM Sans', sans-serif; overflow-x: hidden; line-height: 1.6; }
+        ::selection { background: rgba(181,137,58,0.2); }
         .serif { font-family: 'Playfair Display', serif; }
-        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+        .mono { font-family: 'Courier New', Courier, monospace; }
+        .wrap { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+        .wrap-wide { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+        .rule { border: none; border-top: 1px solid rgba(26,22,18,0.12); }
+        .rule-heavy { border: none; border-top: 2px solid #1a1612; }
         input, button, textarea { font-family: 'DM Sans', sans-serif; }
+        .label { font-family: 'Courier New', Courier, monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #9e9185; }
+        .gold { color: #b5893a; }
       `}</style>
 
-      {/* Nav */}
-      <nav style={{ position: 'fixed', top: 0, width: '100%', zIndex: 100, transition: 'all 0.3s', background: scrolled ? 'rgba(14,13,11,0.92)' : 'transparent', backdropFilter: scrolled ? 'blur(16px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-        <div className="wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 32px' }}>
-          <span className="serif" style={{ fontSize: 22, fontWeight: 600, color: '#ede8df' }}>Sift</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <button onClick={() => openModal()} style={{ background: 'none', border: 'none', color: '#7a7468', fontSize: 14, cursor: 'pointer' }}>Sign in</button>
-            <button onClick={() => openModal()} style={{ background: '#c9a96e', border: 'none', color: '#0e0d0b', padding: '9px 20px', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              Start free trial
+      {/* ── Nav ── */}
+      <nav style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 100,
+        background: scrolled ? 'rgba(240,235,224,0.95)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(26,22,18,0.1)' : 'none',
+        transition: 'all 0.4s',
+      }}>
+        <div className="wrap-wide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px' }}>
+          <span className="serif" style={{ fontSize: 20, fontWeight: 700, letterSpacing: 0.5, color: '#1a1612' }}>Sift</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+            <button onClick={() => openModal()} style={{ background: 'none', border: 'none', color: '#9e9185', fontSize: 13, cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>Sign in</button>
+            <button onClick={() => openModal()} style={{ background: '#1a1612', border: 'none', color: '#f0ebe0', padding: '9px 22px', fontSize: 12, fontWeight: 500, cursor: 'pointer', letterSpacing: 1.5, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase' }}>
+              Subscribe
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section style={{ padding: '160px 0 100px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="wrap">
-          <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase', color: '#c9a96e', marginBottom: 28 }}>Daily intelligence</p>
-          <h1 className="serif" style={{ fontSize: 'clamp(52px, 7vw, 96px)', fontWeight: 500, lineHeight: 1.06, letterSpacing: -2, maxWidth: 820, marginBottom: 32, color: '#ede8df' }}>
-            The internet,<br /><em style={{ fontStyle: 'italic', color: '#c9a96e' }}>sifted</em> for you.
+      {/* ── Masthead Hero ── */}
+      <section style={{ paddingTop: 120, paddingBottom: 0, borderBottom: '2px solid #1a1612' }}>
+        <div className="wrap" style={{ textAlign: 'center', paddingTop: 60, paddingBottom: 0 }}>
+
+          {/* Masthead line */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <span className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 2 }}>Est. 2025</span>
+            <span className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 2 }}>{today}</span>
+            <span className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 2 }}>sift-daily.com</span>
+          </div>
+
+          <hr className="rule-heavy" style={{ marginBottom: 28 }} />
+
+          <h1 className="serif" style={{ fontSize: 'clamp(72px, 12vw, 148px)', fontWeight: 700, lineHeight: 0.92, letterSpacing: -4, color: '#1a1612', marginBottom: 20 }}>
+            Sift
           </h1>
-          <p style={{ fontSize: 18, color: '#7a7468', maxWidth: 480, lineHeight: 1.75, marginBottom: 48 }}>
-            One beautifully written email, every morning. Curated entirely around your interests — nothing else.
+
+          <hr className="rule-heavy" style={{ marginBottom: 20 }} />
+          <hr className="rule" style={{ marginBottom: 32 }} />
+
+          <p className="serif" style={{ fontSize: 'clamp(18px, 2.5vw, 26px)', fontStyle: 'italic', fontWeight: 400, color: '#3a3430', maxWidth: 600, margin: '0 auto 40px', lineHeight: 1.5 }}>
+            The internet, read and distilled for you — every morning, before you wake.
           </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
-            <input ref={heroEmailRef} type="email" placeholder="your@email.com"
-              style={{ padding: '13px 18px', background: '#1c1b17', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: '#ede8df', fontSize: 15, outline: 'none', width: 280 }} />
-            <button onClick={() => openModal(heroEmailRef.current?.value || '')}
-              style={{ background: '#c9a96e', border: 'none', color: '#0e0d0b', padding: '13px 24px', borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+
+          <div style={{ display: 'flex', gap: 0, maxWidth: 440, margin: '0 auto 16px', border: '1px solid rgba(26,22,18,0.2)' }}>
+            <input
+              ref={heroEmailRef}
+              type="email"
+              placeholder="your@email.com"
+              style={{ flex: 1, padding: '14px 18px', background: '#f8f4ec', border: 'none', outline: 'none', fontSize: 14, color: '#1a1612', fontFamily: "'Courier New', monospace" }}
+            />
+            <button
+              onClick={() => openModal(heroEmailRef.current?.value || '')}
+              style={{ background: '#1a1612', border: 'none', color: '#f0ebe0', padding: '14px 24px', fontSize: 11, fontWeight: 500, cursor: 'pointer', letterSpacing: 2, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase', whiteSpace: 'nowrap' }}
+            >
               Get started
             </button>
           </div>
-          <p style={{ fontSize: 13, color: '#4a4840' }}>$1.99 per month. 7-day free trial. Cancel anytime.</p>
+          <p className="mono" style={{ fontSize: 10, color: '#b5ae9f', letterSpacing: 1.5, marginBottom: 64 }}>$1.99 / month · 7-day free trial · cancel anytime</p>
         </div>
       </section>
 
-      {/* Stats */}
-      <section style={{ padding: '56px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#141410' }}>
-        <div className="wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }}>
-            {[['14,200', 'Readers worldwide'], ['97%', 'Average open rate'], ['4.9 / 5', 'Reader satisfaction'], ['3 min', 'Average read time']].map(([num, label], i) => (
-              <div key={i} style={{ padding: '0 32px 0 0', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
-                <div className="serif" style={{ fontSize: 36, fontWeight: 500, color: '#ede8df', letterSpacing: -1, marginBottom: 4 }}>{num}</div>
-                <div style={{ fontSize: 13, color: '#7a7468' }}>{label}</div>
+      {/* ── Stats bar ── */}
+      <section style={{ borderBottom: '1px solid rgba(26,22,18,0.12)', background: '#e8e2d5' }}>
+        <div className="wrap-wide">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            {[['14,200', 'Readers worldwide'], ['97%', 'Open rate'], ['4.9/5', 'Satisfaction'], ['3 min', 'Read time']].map(([num, label], i) => (
+              <div key={i} style={{ padding: '28px 0', paddingLeft: i > 0 ? 32 : 0, borderLeft: i > 0 ? '1px solid rgba(26,22,18,0.1)' : 'none', marginLeft: i > 0 ? 0 : 0 }}>
+                <div className="serif" style={{ fontSize: 32, fontWeight: 700, color: '#1a1612', letterSpacing: -1, lineHeight: 1 }}>{num}</div>
+                <div className="mono" style={{ fontSize: 9, color: '#9e9185', letterSpacing: 2, marginTop: 4 }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section style={{ padding: '100px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* ── How it works ── */}
+      <section style={{ padding: '88px 0', borderBottom: '1px solid rgba(26,22,18,0.12)' }}>
         <div className="wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 20 }}>How it works</p>
-              <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 500, lineHeight: 1.2, letterSpacing: -0.5, color: '#ede8df' }}>
-                Set it once.<br />Read every morning.
-              </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 64, alignItems: 'start' }}>
+            <div style={{ paddingTop: 6 }}>
+              <div className="label" style={{ marginBottom: 12 }}>How it works</div>
+              <hr className="rule" />
             </div>
             <div>
               {[
-                ['I.', 'Tell us what you care about', 'Type anything — a topic, a subject, a specific niche. There are no predefined categories. If you care about it, we\'ll find it.'],
-                ['II.', 'We read the internet overnight', 'Our AI scans thousands of sources every night, finds what matters to you, and writes it up clearly, without the noise.'],
-                ['III.', 'It lands before you wake up', 'At 7am in your timezone, a beautiful, scannable briefing hits your inbox. Three minutes. Fully informed.'],
-              ].map(([num, title, desc]) => (
-                <div key={num as string} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', padding: '32px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <div className="serif" style={{ fontSize: 13, color: '#4a4840', fontStyle: 'italic', paddingTop: 3 }}>{num}</div>
+                ['I.', 'Tell us what you care about', 'Type anything — a subject, a niche, a passion. There are no predefined categories. Your briefing is shaped entirely by you.'],
+                ['II.', 'We read the internet overnight', 'Our AI searches thousands of sources each night, finds what is actually interesting, and writes it up with care.'],
+                ['III.', 'It arrives before you wake', 'At 7am in your timezone, a clean, beautiful briefing is in your inbox. Three minutes to read. Fully informed.'],
+              ].map(([num, title, desc], i) => (
+                <div key={num as string} style={{ display: 'grid', gridTemplateColumns: '40px 1fr', paddingBottom: 36, marginBottom: 36, borderBottom: i < 2 ? '1px solid rgba(26,22,18,0.08)' : 'none' }}>
+                  <div className="mono" style={{ fontSize: 11, color: '#b5ae9f', paddingTop: 4 }}>{num}</div>
                   <div>
-                    <div className="serif" style={{ fontSize: 20, fontWeight: 500, color: '#ede8df', marginBottom: 8 }}>{title as string}</div>
-                    <div style={{ fontSize: 14, color: '#7a7468', lineHeight: 1.7 }}>{desc as string}</div>
+                    <div className="serif" style={{ fontSize: 22, fontWeight: 500, color: '#1a1612', marginBottom: 8, lineHeight: 1.2 }}>{title as string}</div>
+                    <div style={{ fontSize: 14, color: '#6b6356', lineHeight: 1.75 }}>{desc as string}</div>
                   </div>
                 </div>
               ))}
@@ -170,205 +197,221 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Newsletter preview */}
-      <section style={{ padding: '100px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#141410' }}>
+      {/* ── Newsletter preview ── */}
+      <section style={{ padding: '88px 0', borderBottom: '1px solid rgba(26,22,18,0.12)', background: '#e8e2d5' }}>
         <div className="wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'start' }}>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 20 }}>The product</p>
-              <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 500, lineHeight: 1.2, letterSpacing: -0.5, marginBottom: 20, color: '#ede8df' }}>
-                Genuinely beautiful to read.
+              <div className="label" style={{ marginBottom: 16 }}>The product</div>
+              <hr className="rule" style={{ marginBottom: 28 }} />
+              <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 500, lineHeight: 1.15, letterSpacing: -0.5, marginBottom: 20, color: '#1a1612' }}>
+                Genuinely beautiful<br />to read.
               </h2>
-              <p style={{ fontSize: 15, color: '#7a7468', lineHeight: 1.8, marginBottom: 36 }}>
-                Not a wall of links. Not a scrape-and-paste job. Sift writes clean, considered summaries that respect your time and your intelligence.
+              <p style={{ fontSize: 15, color: '#6b6356', lineHeight: 1.85, marginBottom: 36 }}>
+                Not a wall of links. Not a dump of headlines. Sift writes considered, intelligent summaries — the kind a well-read friend would send you.
               </p>
-              {[['No sponsored content', 'Ever.'], ['Completely yours', 'Shaped entirely by what you tell us you care about.'], ['Arrives at 7am', 'In your timezone, before you reach for your phone.']].map(([t, d]) => (
-                <div key={t as string} style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
-                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#c9a96e', marginTop: 8, flexShrink: 0 }} />
-                  <div>
-                    <span style={{ fontSize: 15, fontWeight: 500, color: '#ede8df' }}>{t as string}</span>
-                    <span style={{ fontSize: 15, color: '#7a7468' }}> — {d as string}</span>
-                  </div>
+              {[
+                ['No sponsored content', 'Ever. Not now, not later.'],
+                ['Entirely yours', 'Shaped by what you tell us, nothing else.'],
+                ['Arrives at 7am', 'In your timezone. Before your day begins.'],
+              ].map(([t, d]) => (
+                <div key={t as string} style={{ borderLeft: '2px solid #b5893a', paddingLeft: 16, marginBottom: 20 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: '#1a1612' }}>{t as string}</div>
+                  <div style={{ fontSize: 13, color: '#9e9185', marginTop: 2 }}>{d as string}</div>
                 </div>
               ))}
             </div>
 
-            {/* Mockup */}
-            <div style={{ background: '#faf8f4', borderRadius: 12, overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.5)' }}>
-              <div style={{ background: '#1a1814', padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 600, color: '#ede8df', fontSize: 16 }}>Sift</span>
-                <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 0.5 }}>Wednesday, 13 May</span>
+            {/* Mockup — newspaper column style */}
+            <div style={{ background: '#faf7f0', border: '1px solid rgba(26,22,18,0.12)', boxShadow: '4px 4px 0 rgba(26,22,18,0.08)' }}>
+              <div style={{ background: '#1a1612', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, color: '#f0ebe0', fontSize: 16, letterSpacing: 0.5 }}>Sift</span>
+                <span style={{ fontFamily: "'Courier New',monospace", fontSize: 10, color: '#6b6356', letterSpacing: 1 }}>Wednesday · 13 May</span>
               </div>
-              <div style={{ padding: '22px 28px', borderBottom: '1px solid #ede9e0' }}>
-                <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase' as const, color: '#9e9488', marginBottom: 4, fontFamily: "'DM Sans',sans-serif" }}>Good morning, Alex</div>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 19, color: '#1a1814', fontWeight: 500 }}>Your 4-minute briefing.</div>
+              <div style={{ padding: '20px 24px', borderBottom: '2px solid #1a1612' }}>
+                <div style={{ fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: 2, color: '#b5ae9f', marginBottom: 6, textTransform: 'uppercase' }}>Good morning, Alex</div>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, color: '#1a1612', fontStyle: 'italic', lineHeight: 1.3 }}>Your briefing is ready.</div>
               </div>
               {[
-                { tag: 'Technology', title: 'OpenAI releases new reasoning model with 10× faster inference', body: 'The latest model sets new benchmarks on code generation and outperforms competitors on latency...' },
-                { tag: 'Markets', title: 'Fed signals rate pause as inflation data surprises', body: 'Core PCE came in below expectations for the third consecutive month, easing pressure...' },
-                { tag: 'World', title: 'EU Parliament passes landmark AI accountability directive', body: 'Companies deploying high-risk AI face mandatory audits and new transparency requirements...' },
+                { tag: 'Technology', title: 'OpenAI releases reasoning model with 10× faster inference', body: 'New benchmarks on code generation. Outperforms competitors on latency-sensitive tasks by a significant margin...' },
+                { tag: 'Markets', title: 'Fed signals pause as inflation data surprises to the downside', body: 'Core PCE below expectations for the third month running. Committee pressure eases considerably...' },
+                { tag: 'World', title: 'EU passes landmark AI accountability directive', body: 'High-risk deployments face mandatory audits. Companies given 18 months to comply with new transparency rules...' },
               ].map((item, i) => (
-                <div key={i} style={{ padding: '16px 28px', borderBottom: '1px solid #ede9e0' }}>
-                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 4, fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>{item.tag}</div>
-                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 13, fontWeight: 500, color: '#1a1814', marginBottom: 3, lineHeight: 1.4 }}>{item.title}</div>
-                  <div style={{ fontSize: 12, color: '#9e9488', lineHeight: 1.6, fontFamily: "'DM Sans',sans-serif" }}>{item.body}</div>
+                <div key={i} style={{ padding: '16px 24px', borderBottom: '1px solid rgba(26,22,18,0.08)' }}>
+                  <div style={{ fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: 2, color: '#b5893a', textTransform: 'uppercase', marginBottom: 5 }}>{item.tag}</div>
+                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 13, fontWeight: 600, color: '#1a1612', marginBottom: 4, lineHeight: 1.35 }}>{item.title}</div>
+                  <div style={{ fontSize: 12, color: '#9e9185', lineHeight: 1.65, fontFamily: "'DM Sans',sans-serif" }}>{item.body}</div>
                 </div>
               ))}
-              <div style={{ padding: '12px 28px', background: '#f2efe8' }}>
-                <div style={{ fontSize: 11, color: '#b5b0a5', textAlign: 'center' as const, fontFamily: "'DM Sans',sans-serif" }}>Curated by Sift · Manage preferences · Unsubscribe</div>
+              <div style={{ padding: '12px 24px', background: '#f0ebe0' }}>
+                <div style={{ fontFamily: "'Courier New',monospace", fontSize: 9, color: '#b5ae9f', letterSpacing: 1 }}>Curated by Sift · sift-daily.com</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section style={{ padding: '100px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* ── Pricing ── */}
+      <section style={{ padding: '88px 0', borderBottom: '1px solid rgba(26,22,18,0.12)' }}>
         <div className="wrap">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 20 }}>Pricing</p>
-              <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 500, lineHeight: 1.2, letterSpacing: -0.5, marginBottom: 16, color: '#ede8df' }}>
-                One plan.<br />$1.99 a month.
+              <div className="label" style={{ marginBottom: 16 }}>Pricing</div>
+              <hr className="rule" style={{ marginBottom: 28 }} />
+              <h2 className="serif" style={{ fontSize: 'clamp(28px,3vw,42px)', fontWeight: 500, lineHeight: 1.15, letterSpacing: -0.5, color: '#1a1612' }}>
+                One plan.<br /><em style={{ fontStyle: 'italic' }}>One dollar ninety-nine.</em>
               </h2>
-              <p style={{ fontSize: 15, color: '#7a7468', lineHeight: 1.8 }}>No tiers. No upsells. No annual trap. Just your daily briefing for less than a cup of tea.</p>
+              <p style={{ fontSize: 14, color: '#6b6356', lineHeight: 1.85, marginTop: 16 }}>No tiers. No upsells. No annual trap. Just your briefing, every morning, for less than a decent cup of tea.</p>
             </div>
-            <div style={{ background: '#141410', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '40px 36px' }}>
-              <div className="serif" style={{ fontSize: 64, fontWeight: 500, color: '#ede8df', letterSpacing: -2, lineHeight: 1, marginBottom: 4 }}>$1</div>
-              <div style={{ fontSize: 14, color: '#4a4840', marginBottom: 28 }}>per month, billed monthly</div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10, marginBottom: 32 }}>
-                {['Daily newsletter, 7 days a week', 'Unlimited custom interests', 'Delivered at 7am your time', 'Update your topics any time', '7-day free trial to start'].map(f => (
-                  <div key={f} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <span style={{ color: '#c9a96e', marginTop: 1 }}>—</span>
-                    <span style={{ fontSize: 14, color: '#7a7468' }}>{f}</span>
+            <div style={{ border: '1px solid rgba(26,22,18,0.15)', background: '#faf7f0', boxShadow: '4px 4px 0 rgba(26,22,18,0.06)' }}>
+              <div style={{ padding: '32px 32px 0' }}>
+                <div className="serif" style={{ fontSize: 72, fontWeight: 700, color: '#1a1612', letterSpacing: -3, lineHeight: 1 }}>$1<span style={{ fontSize: 36 }}>.99</span></div>
+                <div className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 2, marginTop: 6, marginBottom: 28 }}>Per month, billed monthly</div>
+                <hr className="rule" style={{ marginBottom: 24 }} />
+                {['Daily newsletter, 7 days a week', 'Unlimited custom interests — type anything', 'Delivered at 7am your time', 'Update your topics any time', '7-day free trial'].map(f => (
+                  <div key={f} style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' }}>
+                    <span className="mono" style={{ fontSize: 10, color: '#b5893a', marginTop: 3 }}>—</span>
+                    <span style={{ fontSize: 13, color: '#6b6356' }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={() => openModal()} style={{ width: '100%', padding: '13px', background: '#c9a96e', border: 'none', borderRadius: 6, color: '#0e0d0b', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
-                Start your free trial
-              </button>
+              <div style={{ padding: '24px 32px 32px' }}>
+                <button onClick={() => openModal()} style={{ width: '100%', padding: '14px', background: '#1a1612', border: 'none', color: '#f0ebe0', fontSize: 11, fontWeight: 500, cursor: 'pointer', letterSpacing: 2, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase' }}>
+                  Start free trial
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section style={{ padding: '100px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#141410' }}>
+      {/* ── Testimonials ── */}
+      <section style={{ padding: '88px 0', borderBottom: '1px solid rgba(26,22,18,0.12)', background: '#e8e2d5' }}>
         <div className="wrap">
-          <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 64 }}>What readers say</p>
+          <div className="label" style={{ marginBottom: 16 }}>Reader voices</div>
+          <hr className="rule" style={{ marginBottom: 56 }} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 48 }}>
             {TESTIMONIALS.map((t, i) => (
               <div key={i}>
-                <p className="serif" style={{ fontSize: 16, color: '#ede8df', lineHeight: 1.75, marginBottom: 24, fontStyle: 'italic' }}>"{t.q}"</p>
-                <div style={{ width: 24, height: 1, background: 'rgba(201,169,110,0.4)', marginBottom: 16 }} />
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#ede8df' }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: '#4a4840', marginTop: 2 }}>{t.role}</div>
+                <p className="serif" style={{ fontSize: 17, fontStyle: 'italic', color: '#1a1612', lineHeight: 1.8, marginBottom: 24, fontWeight: 400 }}>
+                  "{t.q}"
+                </p>
+                <div style={{ width: 20, height: 1, background: '#b5893a', marginBottom: 14 }} />
+                <div className="mono" style={{ fontSize: 10, color: '#6b6356', letterSpacing: 1.5 }}>{t.name} · {t.role}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section style={{ padding: '120px 0', background: '#141410' }}>
-        <div className="wrap">
-          <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: 3, textTransform: 'uppercase' as const, color: '#c9a96e', marginBottom: 24 }}>Join 14,000 readers</p>
-          <h2 className="serif" style={{ fontSize: 'clamp(36px,5vw,64px)', fontWeight: 500, lineHeight: 1.1, letterSpacing: -1.5, marginBottom: 40, maxWidth: 640, color: '#ede8df' }}>
-            Stop doom-scrolling.<br /><em>Start your morning right.</em>
+      {/* ── Final CTA ── */}
+      <section style={{ padding: '100px 0', borderBottom: '2px solid #1a1612' }}>
+        <div className="wrap" style={{ textAlign: 'center' }}>
+          <div className="label" style={{ marginBottom: 20 }}>Join 14,000 readers</div>
+          <h2 className="serif" style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 700, letterSpacing: -2, lineHeight: 1.05, color: '#1a1612', marginBottom: 16 }}>
+            Stop doom-scrolling.
           </h2>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-            <button onClick={() => openModal()} style={{ background: '#c9a96e', border: 'none', color: '#0e0d0b', padding: '14px 28px', borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-              Start your free trial
-            </button>
-            <span style={{ fontSize: 13, color: '#4a4840' }}>$1.99/month. 7 days free. Cancel anytime.</span>
-          </div>
+          <h2 className="serif" style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 400, fontStyle: 'italic', letterSpacing: -2, lineHeight: 1.05, color: '#3a3430', marginBottom: 48 }}>
+            Start your morning right.
+          </h2>
+          <button onClick={() => openModal()} style={{ background: '#1a1612', border: 'none', color: '#f0ebe0', padding: '16px 36px', fontSize: 11, fontWeight: 500, cursor: 'pointer', letterSpacing: 2.5, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase' }}>
+            Start your free trial
+          </button>
+          <p className="mono" style={{ fontSize: 9, color: '#b5ae9f', letterSpacing: 2, marginTop: 20 }}>$1.99 / month · 7 days free · cancel anytime</p>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ padding: '36px 0', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 16 }}>
-          <span className="serif" style={{ fontSize: 16, fontWeight: 600, color: '#ede8df' }}>Sift</span>
-          <div style={{ display: 'flex', gap: 24 }}>
+      {/* ── Footer ── */}
+      <footer style={{ padding: '28px 0', background: '#1a1612' }}>
+        <div className="wrap-wide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <span className="serif" style={{ fontSize: 16, fontWeight: 700, color: '#f0ebe0' }}>Sift</span>
+          <div style={{ display: 'flex', gap: 28 }}>
             {['Privacy', 'Terms', 'Contact'].map(l => (
-              <a key={l} href="#" style={{ fontSize: 12, color: '#4a4840', textDecoration: 'none' }}>{l}</a>
+              <a key={l} href="#" style={{ fontFamily: "'Courier New',monospace", fontSize: 9, color: '#6b6356', textDecoration: 'none', letterSpacing: 1.5, textTransform: 'uppercase' }}>{l}</a>
             ))}
           </div>
-          <span style={{ fontSize: 12, color: '#4a4840' }}>© 2025 Sift</span>
+          <span className="mono" style={{ fontSize: 9, color: '#4a4540', letterSpacing: 1 }}>© 2025 Sift · sift-daily.com</span>
         </div>
       </footer>
 
-      {/* Modal */}
+      {/* ── Modal ── */}
       {modal && (
         <div onClick={e => { if (e.target === e.currentTarget) setModal(false) }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: '#141410', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '48px 40px', maxWidth: 480, width: '100%', position: 'relative' }}>
-            <button onClick={() => setModal(false)} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', color: '#4a4840', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,18,14,0.7)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#f0ebe0', border: '1px solid rgba(26,22,18,0.15)', maxWidth: 460, width: '100%', position: 'relative', boxShadow: '8px 8px 0 rgba(26,22,18,0.08)' }}>
 
-            <div style={{ display: 'flex', gap: 4, marginBottom: 36 }}>
-              {[1, 2].map(n => (
-                <div key={n} style={{ flex: 1, height: 2, borderRadius: 1, background: step >= n ? '#c9a96e' : 'rgba(255,255,255,0.07)', transition: 'background 0.3s' }} />
-              ))}
+            {/* Modal header */}
+            <div style={{ background: '#1a1612', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="serif" style={{ fontSize: 16, fontWeight: 700, color: '#f0ebe0' }}>Sift</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[1, 2].map(n => (
+                    <div key={n} style={{ width: 20, height: 2, background: step >= n ? '#b5893a' : '#3a3430', transition: 'background 0.3s' }} />
+                  ))}
+                </div>
+                <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: '#6b6356', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>×</button>
+              </div>
             </div>
 
-            {step === 1 && (
-              <>
-                <h3 className="serif" style={{ fontSize: 26, fontWeight: 500, marginBottom: 6, color: '#ede8df' }}>Create your account</h3>
-                <p style={{ fontSize: 14, color: '#7a7468', marginBottom: 28 }}>7 days free — then $1.99/month. No card needed today.</p>
-                {error && <p style={{ color: '#e07070', fontSize: 13, marginBottom: 16 }}>{error}</p>}
-                {[
-                  { label: 'Your name', val: name, set: setName, type: 'text', ph: 'Alex' },
-                  { label: 'Email address', val: email, set: setEmail, type: 'email', ph: 'you@email.com' },
-                  { label: 'Password', val: password, set: setPassword, type: 'password', ph: 'At least 8 characters' },
-                ].map(f => (
-                  <div key={f.label} style={{ marginBottom: 14 }}>
-                    <label style={{ fontSize: 12, fontWeight: 500, color: '#7a7468', marginBottom: 6, display: 'block', letterSpacing: 0.3 }}>{f.label}</label>
-                    <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                      style={{ width: '100%', padding: '12px 14px', background: '#1c1b17', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#ede8df', fontSize: 14, outline: 'none' }} />
-                  </div>
-                ))}
-                <button onClick={handleSignup} disabled={loading}
-                  style={{ width: '100%', padding: '13px', background: '#c9a96e', border: 'none', borderRadius: 6, color: '#0e0d0b', fontWeight: 600, fontSize: 14, cursor: 'pointer', marginTop: 6, opacity: loading ? 0.7 : 1 }}>
-                  {loading ? 'Creating account…' : 'Continue'}
-                </button>
-                <p style={{ fontSize: 12, color: '#4a4840', textAlign: 'center' as const, marginTop: 14 }}>No spam. Unsubscribe in one click.</p>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <h3 className="serif" style={{ fontSize: 26, fontWeight: 500, marginBottom: 6, color: '#ede8df' }}>What do you follow?</h3>
-                <p style={{ fontSize: 14, color: '#7a7468', marginBottom: 24 }}>Type anything — topics, niches, subjects. Press <kbd style={{ background: '#1c1b17', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, padding: '1px 5px', fontSize: 11, color: '#7a7468' }}>Enter</kbd> to add each one.</p>
-                {error && <p style={{ color: '#e07070', fontSize: 13, marginBottom: 12 }}>{error}</p>}
-
-                {/* Tag input */}
-                <div onClick={() => topicInputRef.current?.focus()}
-                  style={{ minHeight: 100, padding: '10px 12px', background: '#1c1b17', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, display: 'flex', flexWrap: 'wrap' as const, gap: 6, alignItems: 'flex-start', cursor: 'text', marginBottom: 24 }}>
-                  {topics.map(t => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.3)', borderRadius: 4, padding: '4px 10px', fontSize: 13, color: '#c9a96e' }}>
-                      {t}
-                      <button onClick={() => setTopics(prev => prev.filter(x => x !== t))}
-                        style={{ background: 'none', border: 'none', color: '#c9a96e', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, opacity: 0.6 }}>×</button>
-                    </span>
+            <div style={{ padding: '36px 32px' }}>
+              {step === 1 && (
+                <>
+                  <h3 className="serif" style={{ fontSize: 24, fontWeight: 500, marginBottom: 4, color: '#1a1612' }}>Create your account</h3>
+                  <p className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 1.5, marginBottom: 28 }}>7 days free — then $1.99/month</p>
+                  {error && <p style={{ color: '#b54a3a', fontSize: 13, marginBottom: 16, fontFamily: "'Courier New',monospace" }}>{error}</p>}
+                  {[
+                    { label: 'Your name', val: name, set: setName, type: 'text', ph: 'Alex' },
+                    { label: 'Email address', val: email, set: setEmail, type: 'email', ph: 'you@email.com' },
+                    { label: 'Password', val: password, set: setPassword, type: 'password', ph: 'At least 8 characters' },
+                  ].map(f => (
+                    <div key={f.label} style={{ marginBottom: 14 }}>
+                      <label className="mono" style={{ fontSize: 9, color: '#9e9185', marginBottom: 6, display: 'block', letterSpacing: 2 }}>{f.label.toUpperCase()}</label>
+                      <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                        style={{ width: '100%', padding: '12px 14px', background: '#faf7f0', border: '1px solid rgba(26,22,18,0.12)', color: '#1a1612', fontSize: 14, outline: 'none', fontFamily: "'Courier New', Courier, monospace" }} />
+                    </div>
                   ))}
-                  <input
-                    ref={topicInputRef}
-                    value={topicInput}
-                    onChange={e => setTopicInput(e.target.value)}
-                    onKeyDown={handleTopicKey}
-                    onBlur={addTopic}
-                    placeholder={topics.length ? '' : 'e.g. Byzantine history, quantum computing, Serie A…'}
-                    style={{ background: 'none', border: 'none', outline: 'none', color: '#ede8df', fontSize: 14, flex: 1, minWidth: 120, padding: '4px 2px' }}
-                  />
-                </div>
+                  <button onClick={handleSignup} disabled={loading}
+                    style={{ width: '100%', marginTop: 8, padding: '14px', background: '#1a1612', border: 'none', color: '#f0ebe0', fontSize: 11, fontWeight: 500, cursor: 'pointer', letterSpacing: 2, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase', opacity: loading ? 0.6 : 1 }}>
+                    {loading ? 'One moment…' : 'Continue'}
+                  </button>
+                  <p className="mono" style={{ fontSize: 9, color: '#b5ae9f', textAlign: 'center', marginTop: 14, letterSpacing: 1 }}>No spam · Unsubscribe in one click</p>
+                </>
+              )}
 
-                <button onClick={handleTopicsContinue} disabled={loading}
-                  style={{ width: '100%', padding: '13px', background: '#c9a96e', border: 'none', borderRadius: 6, color: '#0e0d0b', fontWeight: 600, fontSize: 14, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
-                  {loading ? 'Redirecting to payment…' : 'Continue to payment — $1.99/month'}
-                </button>
-                <p style={{ fontSize: 12, color: '#4a4840', textAlign: 'center' as const, marginTop: 14 }}>No charge for 7 days. Cancel before then and pay nothing.</p>
-              </>
-            )}
+              {step === 2 && (
+                <>
+                  <h3 className="serif" style={{ fontSize: 24, fontWeight: 500, marginBottom: 4, color: '#1a1612' }}>What do you follow?</h3>
+                  <p className="mono" style={{ fontSize: 10, color: '#9e9185', letterSpacing: 1.5, marginBottom: 24 }}>Type anything — press Enter to add</p>
+                  {error && <p style={{ color: '#b54a3a', fontSize: 13, marginBottom: 12, fontFamily: "'Courier New',monospace" }}>{error}</p>}
+
+                  <div onClick={() => topicInputRef.current?.focus()}
+                    style={{ minHeight: 120, padding: '10px 12px', background: '#faf7f0', border: '1px solid rgba(26,22,18,0.12)', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'flex-start', cursor: 'text', marginBottom: 24 }}>
+                    {topics.map(t => (
+                      <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1a1612', padding: '4px 10px', fontSize: 11, color: '#f0ebe0', fontFamily: "'Courier New',monospace", letterSpacing: 0.5 }}>
+                        {t}
+                        <button onClick={() => setTopics(prev => prev.filter(x => x !== t))}
+                          style={{ background: 'none', border: 'none', color: '#9e9185', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                      </span>
+                    ))}
+                    <input
+                      ref={topicInputRef}
+                      value={topicInput}
+                      onChange={e => setTopicInput(e.target.value)}
+                      onKeyDown={handleTopicKey}
+                      onBlur={addTopic}
+                      placeholder={topics.length ? '' : 'e.g. Byzantine history, quantum computing, Serie A…'}
+                      style={{ background: 'none', border: 'none', outline: 'none', color: '#1a1612', fontSize: 13, flex: 1, minWidth: 120, padding: '4px 2px', fontFamily: "'Courier New', Courier, monospace" }}
+                    />
+                  </div>
+
+                  <button onClick={handleTopicsContinue} disabled={loading}
+                    style={{ width: '100%', padding: '14px', background: '#1a1612', border: 'none', color: '#f0ebe0', fontSize: 11, fontWeight: 500, cursor: 'pointer', letterSpacing: 2, fontFamily: "'Courier New', Courier, monospace", textTransform: 'uppercase', opacity: loading ? 0.6 : 1 }}>
+                    {loading ? 'Redirecting…' : 'Continue to payment — $1.99/mo'}
+                  </button>
+                  <p className="mono" style={{ fontSize: 9, color: '#b5ae9f', textAlign: 'center', marginTop: 14, letterSpacing: 1 }}>No charge for 7 days · Cancel anytime</p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
