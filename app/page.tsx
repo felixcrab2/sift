@@ -93,6 +93,7 @@ export default function Home() {
   const supabase = createClient()
   const [modal, setModal] = useState(false)
   const [step, setStep] = useState(1)
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -116,9 +117,9 @@ export default function Home() {
     transition: `opacity 1s cubic-bezier(.2,.7,.2,1) ${delay}s, transform 1s cubic-bezier(.2,.7,.2,1) ${delay}s`,
   })
 
-  function openModal(prefill = '') {
+  function openModal(prefill = '', initialMode: 'signup' | 'signin' = 'signup') {
     if (prefill) setEmail(prefill)
-    setStep(1); setError(''); setModal(true)
+    setMode(initialMode); setStep(1); setError(''); setModal(true)
   }
 
   const MAX_TOPICS = 6
@@ -143,24 +144,46 @@ export default function Home() {
   async function handleSignup() {
     if (!email || !email.includes('@') || !name || !password) { setError('please complete all fields.'); return }
     setLoading(true); setError('')
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: { name }, emailRedirectTo: `${window.location.origin}/auth/callback` }
     })
     setLoading(false)
     if (error) { setError(error.message.toLowerCase()); return }
+    if (!data.session) {
+      setError('check your email — please confirm your address, then sign in to continue.')
+      return
+    }
     setStep(2)
+  }
+
+  async function handleSignIn() {
+    if (!email || !email.includes('@') || !password) { setError('please complete all fields.'); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (error) { setError(error.message.toLowerCase()); return }
+    window.location.href = '/dashboard'
   }
 
   async function handleFinish() {
     if (!topics.length) { setError('please name at least one subject.'); return }
+    setError('')
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) await supabase.from('interests').update({ topics }).eq('user_id', user.id)
+    if (!user) {
+      setError('your session has expired. please sign in to continue.')
+      return
+    }
     setLoading(true)
+    await supabase.from('interests').update({ topics }).eq('user_id', user.id)
     const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-    const { url } = await res.json()
-    if (url) window.location.href = url
+    const data = await res.json()
     setLoading(false)
+    if (!res.ok || !data.url) {
+      setError(data.error?.toLowerCase?.() || 'could not reach payment. please try again.')
+      return
+    }
+    window.location.href = data.url
   }
 
   // Pseudo-edition number — gives a sense of provenance
@@ -212,7 +235,7 @@ export default function Home() {
             <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#c4a86b' }}></span>
             intake open
           </span>
-          <button onClick={() => openModal()} className="link" style={{ background: 'none', border: 'none', fontSize: 12, color: '#a8a294', cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign in</button>
+          <button onClick={() => openModal('', 'signin')} className="link" style={{ background: 'none', border: 'none', fontSize: 12, color: '#a8a294', cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign in</button>
           <button onClick={() => openModal()} className="submit" style={{ background: 'none', border: '1px solid #3a352d', color: '#ece7da', padding: '9px 18px', fontSize: 11, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>begin <span className="arrow">→</span></button>
         </div>
       </header>
@@ -488,24 +511,34 @@ export default function Home() {
             >×</button>
 
             <p style={{ fontSize: 11, color: '#7a7468', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 }}>
-              {step === 1 ? 'step 01 of 02' : 'step 02 of 02'}
+              {mode === 'signin' ? 'sign in' : (step === 1 ? 'step 01 of 02' : 'step 02 of 02')}
             </p>
             <p className="serif" style={{ fontSize: 26, fontWeight: 500, color: '#ece7da', marginBottom: 6, letterSpacing: -0.3 }}>
-              {step === 1 ? 'Begin your trial.' : 'Choose your subjects.'}
+              {mode === 'signin' ? 'Welcome back.' : (step === 1 ? 'Begin your trial.' : 'Choose your subjects.')}
             </p>
             <p style={{ fontSize: 13, color: '#8a8478', marginBottom: 36, lineHeight: 1.7 }}>
-              {step === 1 ? 'Seven days free, then $3.99 per month. Cancel from inside whenever you wish.' : `Add up to ${MAX_TOPICS} subjects you follow. Each day, three are chosen for your briefing — so the rotation stays fresh.`}
+              {mode === 'signin'
+                ? 'Sign in to manage your subjects and read past editions.'
+                : (step === 1
+                  ? 'Seven days free, then $3.99 per month. Cancel from inside whenever you wish.'
+                  : `Add up to ${MAX_TOPICS} subjects you follow. Each day, three are chosen for your briefing — so the rotation stays fresh.`)}
             </p>
 
             {error && <p style={{ color: '#c47a5a', fontSize: 12, marginBottom: 20, letterSpacing: 0.3 }}>{error}</p>}
 
             {step === 1 && (
               <>
-                {[
-                  { label: 'name', val: name, set: setName, type: 'text', ph: 'your name' },
-                  { label: 'email', val: email, set: setEmail, type: 'email', ph: 'your email' },
-                  { label: 'password', val: password, set: setPassword, type: 'password', ph: '8+ characters' },
-                ].map(f => (
+                {(mode === 'signup'
+                  ? [
+                      { label: 'name', val: name, set: setName, type: 'text', ph: 'your name' },
+                      { label: 'email', val: email, set: setEmail, type: 'email', ph: 'your email' },
+                      { label: 'password', val: password, set: setPassword, type: 'password', ph: '8+ characters' },
+                    ]
+                  : [
+                      { label: 'email', val: email, set: setEmail, type: 'email', ph: 'your email' },
+                      { label: 'password', val: password, set: setPassword, type: 'password', ph: 'your password' },
+                    ]
+                ).map(f => (
                   <div key={f.label} style={{ marginBottom: 24 }}>
                     <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #2a2620', paddingBottom: 10, gap: 16 }}>
                       <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, minWidth: 64, textTransform: 'uppercase' }}>{f.label}</span>
@@ -513,6 +546,7 @@ export default function Home() {
                         type={f.type}
                         value={f.val}
                         onChange={e => f.set(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') (mode === 'signin' ? handleSignIn : handleSignup)() }}
                         placeholder={f.ph}
                         style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1, letterSpacing: 0.2 }}
                       />
@@ -521,14 +555,22 @@ export default function Home() {
                 ))}
 
                 <button
-                  onClick={handleSignup}
+                  onClick={mode === 'signin' ? handleSignIn : handleSignup}
                   disabled={loading}
                   className="submit"
                   style={{ marginTop: 16, width: '100%', background: '#c4a86b', border: 'none', color: '#0a0907', padding: '15px', fontSize: 12, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 700, opacity: loading ? 0.5 : 1 }}
                 >
-                  {loading ? 'one moment...' : <>continue <span className="arrow">→</span></>}
+                  {loading ? 'one moment...' : <>{mode === 'signin' ? 'sign in' : 'continue'} <span className="arrow">→</span></>}
                 </button>
-                <p style={{ fontSize: 11, color: '#5a564c', textAlign: 'center', marginTop: 14, letterSpacing: 1 }}>no payment taken today.</p>
+
+                <p style={{ fontSize: 12, color: '#7a7468', textAlign: 'center', marginTop: 20, letterSpacing: 0.3 }}>
+                  {mode === 'signin' ? (
+                    <>No account yet? <button onClick={() => { setMode('signup'); setError('') }} style={{ background: 'none', border: 'none', color: '#c4a86b', cursor: 'pointer', fontSize: 12, textDecoration: 'underline', padding: 0 }}>Begin a trial</button></>
+                  ) : (
+                    <>Already have an account? <button onClick={() => { setMode('signin'); setError('') }} style={{ background: 'none', border: 'none', color: '#c4a86b', cursor: 'pointer', fontSize: 12, textDecoration: 'underline', padding: 0 }}>Sign in</button></>
+                  )}
+                </p>
+                {mode === 'signup' && <p style={{ fontSize: 11, color: '#5a564c', textAlign: 'center', marginTop: 10, letterSpacing: 1 }}>no payment taken today.</p>}
               </>
             )}
 
