@@ -65,8 +65,8 @@ function HeadlineTypewriter({ onDone }: { onDone: () => void }) {
   const cursor = !hideCursor && (
     <span style={{
       display: 'inline-block',
-      width: '0.55em',
-      height: '0.86em',
+      width: 2,
+      height: '0.85em',
       background: 'currentColor',
       verticalAlign: '-0.04em',
       marginLeft: 4,
@@ -204,7 +204,7 @@ export default function Home() {
 
       {/* Header */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, #0a0907 70%, transparent)' }}>
-        <span className="a1 serif" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 1, color: '#ece7da' }}>Sift</span>
+        <span className="a1 serif" style={{ fontSize: 32, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
         <div className="a1" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>
             <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#c4a86b' }}></span>
@@ -317,48 +317,60 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <article style={{ border: '1px solid #2a2620', padding: '44px 48px', background: '#0e0c09' }}>
-              <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36, paddingBottom: 18, borderBottom: '1px solid #2a2620' }}>
-                <span className="serif" style={{ fontSize: 22, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
-                <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>Edition №141 &nbsp;·&nbsp; 12 May 2025</span>
+            <article style={{ border: '1px solid #2a2620', padding: '48px 52px', background: '#0e0c09' }}>
+              <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid #2a2620' }}>
+                <span className="serif" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
+                <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>Edition №141 &nbsp;·&nbsp; 12 May 2026</span>
               </header>
 
+              <p style={{ fontSize: 11, color: '#7a7468', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 36, paddingBottom: 18, borderBottom: '1px solid #2a2620', lineHeight: 1.7 }}>
+                <span style={{ color: '#5a564c' }}>composed from:</span> &nbsp;byzantine numismatics &nbsp;·&nbsp; independent film distribution &nbsp;·&nbsp; cephalopod cognition &nbsp;·&nbsp; pre-socratic philosophy
+              </p>
+
               <p style={{ fontSize: 11, letterSpacing: 2.5, color: '#8a8478', textTransform: 'uppercase', marginBottom: 6 }}>good morning, alex</p>
-              <p className="serif" style={{ fontSize: 24, color: '#ece7da', marginBottom: 40, fontStyle: 'italic', fontWeight: 400 }}>your briefing is ready.</p>
+              <p className="serif" style={{ fontSize: 26, color: '#ece7da', marginBottom: 44, fontStyle: 'italic', fontWeight: 400 }}>your briefing is ready.</p>
 
               {[
                 {
-                  tag: 'quantum computing',
-                  headline: 'IBM\'s 1,000-qubit prototype crosses the coherence threshold.',
-                  body: 'A milestone the field has been chasing for half a decade. Beneath the marketing, the underlying error-correction work is the part to read carefully — the implications for cryptography are not subtle.',
-                  italic: 'Why it matters: the post-quantum migration timeline just shortened.',
+                  tag: 'byzantine numismatics',
+                  headline: 'A solidus of Heraclius surfaces in Geneva — the first of its mint type in fifty years.',
+                  body: 'The coin, struck at Constantinople between 610 and 613 AD, carries an unusual mint mark from the brief campaign year before the eastern offensive. It surfaced this week at a private sale for €188,000, at the high end of estimates but unremarkable for a piece of its rarity. What is remarkable is what the mark may indicate about Byzantine military logistics in the early years of Heraclius\'s reign — when the empire was simultaneously running mints at Constantinople, Carthage, and a third location nobody has firmly identified. A retired numismatist at Dumbarton Oaks has questioned the provenance documentation; the sale proceeded nonetheless.',
+                  italic: 'Why it matters: a new data point for a half-century debate about how the empire moved silver during the Sasanian wars.',
                 },
                 {
-                  tag: 'venture capital',
-                  headline: 'A quiet down-round in the AI infrastructure space.',
-                  body: 'The valuation correction nobody wanted to write about. The underlying business is, by most accounts, still real. The unit economics have simply caught up with the storytelling.',
-                  italic: 'Why it matters: a shift in what late-stage capital will pay for.',
+                  tag: 'independent film',
+                  headline: 'A quiet Cannes acquisition signals a shift in arthouse distribution.',
+                  body: 'A small French sales agency has acquired worldwide rights to Ramata-Toulaye Sy\'s second feature for a figure under €600,000 — modest by Cannes standards, but unusual in structure. The deal includes a long theatrical window in eleven territories, an arrangement most arthouse distributors stopped offering after the streamers consolidated rights in 2020. If it holds, the model could quietly become the new template for festival titles whose value is theatrical rather than streaming. The buyer is keeping the price down by foregoing a Netflix-style P&A guarantee, which is the part of the structure your competitors will study.',
+                  italic: 'Why it matters: the first material evidence that the theatre-first model for arthouse cinema is being rebuilt.',
                 },
                 {
-                  tag: 'central banking',
-                  headline: 'The ECB hints at an unusual policy divergence.',
-                  body: 'Lagarde\'s phrasing was specific. Markets noticed; analysts are still parsing what she chose not to say. The euro moved before any release crossed the wire.',
-                  italic: 'Why it matters: the dollar-euro spread may widen further than consensus.',
+                  tag: 'cephalopod cognition',
+                  headline: 'Octopuses appear to make decisions in their arms before — or instead of — their central brain.',
+                  body: 'A paper from the Stazione Zoologica in Naples extends earlier work on neural autonomy in Octopus vulgaris. In controlled foraging trials, individual arms responded to chemical cues in a manner inconsistent with central oversight; crucially, the same arm did not always make the same choice. The behavioural implications are easier to describe than to explain — octopus "preference" may be a kind of agreement-by-vote among nine semi-independent agents, rather than a unified will routed through a single brain. The methodology is contested, but no group has yet replicated it cleanly enough to refute the central finding.',
+                  italic: 'Why it matters: quietly the strongest argument yet for distributed cognition as a genuine alternative to centralised models of mind.',
                 },
               ].map((s, i) => (
-                <div key={i} style={{ marginBottom: 32, paddingBottom: i < 2 ? 32 : 0, borderBottom: i < 2 ? '1px solid #2a2620' : 'none' }}>
-                  <p style={{ fontSize: 11, letterSpacing: 2, color: '#9a9384', textTransform: 'uppercase', marginBottom: 10 }}>{s.tag}</p>
-                  <p className="serif" style={{ fontSize: 19, color: '#ece7da', lineHeight: 1.4, marginBottom: 12, fontWeight: 500, letterSpacing: -0.2 }}>{s.headline}</p>
-                  <p style={{ fontSize: 13, color: '#a8a294', lineHeight: 1.85, marginBottom: 10 }}>{s.body}</p>
-                  <p className="serif" style={{ fontSize: 13, color: '#c4a86b', fontStyle: 'italic', lineHeight: 1.7 }}>{s.italic}</p>
+                <div key={i} style={{ marginBottom: 36, paddingBottom: 36, borderBottom: '1px solid #2a2620' }}>
+                  <p style={{ fontSize: 11, letterSpacing: 2, color: '#9a9384', textTransform: 'uppercase', marginBottom: 12 }}>{s.tag}</p>
+                  <p className="serif" style={{ fontSize: 21, color: '#ece7da', lineHeight: 1.35, marginBottom: 14, fontWeight: 500, letterSpacing: -0.2 }}>{s.headline}</p>
+                  <p style={{ fontSize: 14, color: '#b8b3a4', lineHeight: 1.95, marginBottom: 14 }}>{s.body}</p>
+                  <p className="serif" style={{ fontSize: 14, color: '#c4a86b', fontStyle: 'italic', lineHeight: 1.7 }}>{s.italic}</p>
                 </div>
               ))}
+
+              {/* One more thing */}
+              <div>
+                <p className="serif" style={{ fontSize: 16, color: '#c4a86b', fontStyle: 'italic', marginBottom: 14, letterSpacing: 0.2 }}>One more thing —</p>
+                <p style={{ fontSize: 14, color: '#b8b3a4', lineHeight: 1.95 }}>
+                  The Empedocles fragment that the Vesuvius Challenge team announced last month was decoded using a model originally trained on ancient Greek shopping lists. The team did not expect it to generalise to philosophical verse, and they have published a brief, slightly bewildered note explaining why it did. The note is worth reading in full; the model itself, less so.
+                </p>
+              </div>
             </article>
           </Reveal>
 
           <Reveal delay={0.3}>
-            <p style={{ fontSize: 13, color: '#8a8478', marginTop: 32, lineHeight: 1.85, letterSpacing: 0.3, fontStyle: 'italic' }}>
-              That edition went to one reader. Yours will not look like it.
+            <p style={{ fontSize: 13, color: '#8a8478', marginTop: 32, lineHeight: 1.85, letterSpacing: 0.3, fontStyle: 'italic', textAlign: 'center' }}>
+              That edition went to one reader, on her chosen subjects. Yours will be entirely different.
             </p>
           </Reveal>
         </div>

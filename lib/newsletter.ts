@@ -9,19 +9,18 @@ async function searchTopic(topic: string): Promise<{ title: string; content: str
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         api_key: process.env.TAVILY_API_KEY,
-        query: `latest news and developments: ${topic}`,
+        query: `recent developments, notable writing, and specific findings on: ${topic}`,
         search_depth: 'advanced',
-        max_results: 5,
-        topic: 'news',
-        days: 2,
+        max_results: 8,
+        days: 7,
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(12000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    return (data.results ?? []).slice(0, 4).map((r: any) => ({
+    return (data.results ?? []).slice(0, 5).map((r: any) => ({
       title: r.title ?? '',
-      content: (r.content ?? '').slice(0, 500),
+      content: (r.content ?? '').slice(0, 800),
     }))
   } catch {
     return []
@@ -47,33 +46,34 @@ export async function generateNewsletter(name: string, topics: string[]): Promis
 
   const msg = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1400,
+    max_tokens: 2200,
     messages: [{
       role: 'user',
-      content: `You are the editor of Sift, a premium daily briefing. Write today's newsletter for ${name}.
+      content: `You are the editor of Sift, a premium daily briefing for one reader. Write today's edition for ${name}.
 
 Date: ${today}
-Their interests: ${topics.join(', ')}
+Their chosen subjects: ${topics.join(', ')}
 
-Source material from across the web today:
+Source material gathered from across the web today:
 
 ${context}
 
-Write 3–5 stories. For each:
-- A sharp, specific headline (not clickbait, not vague)
-- 2–3 sentences of clear, intelligent prose
-- One sentence beginning with "Why it matters:" in italics
+Write 3 stories, each centred on one of their subjects. For each:
+- A sharp, specific headline. Name people, places, institutions, sums of money. Avoid vague abstractions.
+- 4–6 sentences of clear, intelligent prose. Include concrete detail: who said what, when, the dollar/euro figure, the methodology, the institution, the historical precedent. Beneath the surface is the part to read carefully — surface up the second-order point that a casual reader would miss.
+- One sentence beginning with "Why it matters:" in italics — sharp, second-order implication, not a recap.
 
-End with a short section called "One more thing" — something surprising, specific, or delightful from any of their interests.
+End with a section titled "One more thing —" (italicised). Two or three sentences on something surprising, specific, or delightful drawn from any of their subjects. A detail, an anecdote, an unexpected connection.
+
+Voice: a brilliant, well-read friend. Warm, precise, slightly understated. The reader is intelligent and follows these subjects already; assume they don't need the basics explained. Reach for the niche detail, not the headline. If a topic is obscure, lean into it — that is the entire point of the briefing.
 
 Rules:
-- Write like a brilliant, well-read friend — warm but precise
-- No bullet points within stories, flowing prose only
-- Be concrete and specific, never vague
-- Do not pad or repeat
-- Total: ~400 words
+- Flowing prose only. No bullet points within stories.
+- Concrete, specific, named. Never vague.
+- Do not pad. Do not repeat. Do not summarise the article — extend it.
+- Total: ~600 words.
 
-Output only clean HTML using: <h3>, <p>, <em>, <strong>, <hr>. No divs, no classes, no inline styles.`,
+Output only clean HTML using: <h3>, <p>, <em>, <strong>, <hr>. No divs, no classes, no inline styles. Use <h3> for story headlines, <p> for body, <em> for "Why it matters:" and "One more thing —" lines.`,
     }],
   })
 
