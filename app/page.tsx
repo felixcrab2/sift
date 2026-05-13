@@ -67,15 +67,15 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { background: #fff; color: #111; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background: #f7f5f0; color: #111; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         .f { font-family: 'Playfair Display', serif; }
         a { color: inherit; text-decoration: none; }
         button, input { font-family: 'Inter', sans-serif; }
-        input::placeholder { color: #ccc; }
+        input::placeholder { color: #bbb; }
       `}</style>
 
       {/* Nav */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #f5f5f5' }}>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(247,245,240,0.95)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #ece9e2' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
           <span className="f" style={{ fontSize: 17, fontWeight: 700, letterSpacing: -0.3 }}>Sift</span>
           <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -87,10 +87,11 @@ export default function Home() {
 
       {/* Hero */}
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '100px 48px 80px' }}>
-        <h1 className="f" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 400, lineHeight: 1.03, letterSpacing: -2.5, color: '#111', maxWidth: 820, marginBottom: 32 }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#b5b0a4', marginBottom: 40, fontWeight: 400 }}>A daily briefing</p>
+        <h1 className="f" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 400, lineHeight: 1.03, letterSpacing: -2.5, color: '#1a1814', maxWidth: 820, marginBottom: 32 }}>
           The internet,<br /><em style={{ fontStyle: 'italic' }}>read for you.</em>
         </h1>
-        <p style={{ fontSize: 18, color: '#999', fontWeight: 300, maxWidth: 400, lineHeight: 1.75, marginBottom: 52 }}>
+        <p style={{ fontSize: 18, color: '#9e9890', fontWeight: 300, maxWidth: 400, lineHeight: 1.75, marginBottom: 52 }}>
           One beautifully written briefing every morning, shaped entirely around your interests.
         </p>
         <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 380 }}>
@@ -98,34 +99,34 @@ export default function Home() {
             ref={heroEmailRef}
             type="email"
             placeholder="your@email.com"
-            style={{ flex: 1, padding: '13px 16px', border: '1px solid #e0e0e0', borderRadius: 3, fontSize: 14, outline: 'none', color: '#111' }}
+            style={{ flex: 1, padding: '13px 16px', border: '1px solid #ddd9d0', borderRadius: 3, fontSize: 14, outline: 'none', color: '#1a1814', background: '#fff' }}
           />
           <button
             onClick={() => openModal(heroEmailRef.current?.value || '')}
-            style={{ padding: '13px 20px', background: '#111', color: '#fff', border: 'none', borderRadius: 3, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ padding: '13px 20px', background: '#1a1814', color: '#f7f5f0', border: 'none', borderRadius: 3, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Get started
           </button>
         </div>
-        <p style={{ fontSize: 12, color: '#ccc', marginTop: 16, letterSpacing: 0.2 }}>$1.99 / month · 7 days free · cancel anytime</p>
+        <p style={{ fontSize: 12, color: '#c0bbb3', marginTop: 16, letterSpacing: 0.2 }}>$1.99 / month · 7 days free · cancel anytime</p>
       </section>
 
       {/* Editorial statement */}
-      <section style={{ borderTop: '1px solid #f0f0f0', padding: '120px 48px' }}>
+      <section style={{ borderTop: '1px solid #e8e4dc', padding: '120px 48px', background: '#f0ede6' }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
-          <p className="f" style={{ fontSize: 'clamp(22px,2.5vw,30px)', fontWeight: 400, lineHeight: 1.65, color: '#222', marginBottom: 64 }}>
+          <p className="f" style={{ fontSize: 'clamp(22px,2.5vw,30px)', fontWeight: 400, lineHeight: 1.65, color: '#1a1814', marginBottom: 64 }}>
             Every morning, Sift reads the internet for you. Real sources. Real writing. Shaped entirely around whatever you tell us you care about — no predefined categories, no filters, no algorithm.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px 56px' }}>
             {[
               ['Your topics, your words', 'Type anything. A niche subject, an era, a market. The more specific, the better your briefing.'],
-              ['Written, not aggregated', 'Our AI searches thousands of sources and writes prose. Not a link dump — a briefing.'],
+              ['Written, not aggregated', 'We search thousands of sources and write prose. Not a link dump — a briefing.'],
               ['In your inbox at 7am', 'Before your day begins. Three minutes to read. Fully informed.'],
               ['Nothing else', 'No ads. No sponsors. No filler. Just what matters to you.'],
             ].map(([t, d]) => (
               <div key={t}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#111', marginBottom: 10, letterSpacing: -0.1 }}>{t}</div>
-                <div style={{ fontSize: 14, color: '#aaa', lineHeight: 1.8, fontWeight: 300 }}>{d}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#1a1814', marginBottom: 10, letterSpacing: -0.1 }}>{t}</div>
+                <div style={{ fontSize: 14, color: '#9e9890', lineHeight: 1.8, fontWeight: 300 }}>{d}</div>
               </div>
             ))}
           </div>
@@ -133,52 +134,52 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section style={{ borderTop: '1px solid #f0f0f0', padding: '120px 48px' }}>
+      <section style={{ borderTop: '1px solid #e8e4dc', padding: '120px 48px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 64 }}>
           {[
             { q: 'I used to spend 45 minutes cycling through RSS feeds. Now I read Sift in three minutes and I\'m better informed.', name: 'James M.', role: 'Product designer, London' },
             { q: 'It feels like having a brilliant friend read the internet for you overnight. The coverage is genuinely nuanced.', name: 'Sarah C.', role: 'VC analyst, New York' },
             { q: 'The design alone is worth it. Every other newsletter I get looks amateurish by comparison.', name: 'Rahim K.', role: 'Founder, Berlin' },
           ].map((t, i) => (
-            <div key={i} style={{ paddingTop: 28, borderTop: '1px solid #e8e8e8' }}>
-              <p className="f" style={{ fontSize: 16, fontStyle: 'italic', fontWeight: 400, color: '#444', lineHeight: 1.8, marginBottom: 24 }}>"{t.q}"</p>
-              <div style={{ fontSize: 13, color: '#111', fontWeight: 500 }}>{t.name}</div>
-              <div style={{ fontSize: 12, color: '#bbb', marginTop: 3 }}>{t.role}</div>
+            <div key={i} style={{ paddingTop: 28, borderTop: '1px solid #ddd9d0' }}>
+              <p className="f" style={{ fontSize: 16, fontStyle: 'italic', fontWeight: 400, color: '#3a3630', lineHeight: 1.8, marginBottom: 24 }}>"{t.q}"</p>
+              <div style={{ fontSize: 13, color: '#1a1814', fontWeight: 500 }}>{t.name}</div>
+              <div style={{ fontSize: 12, color: '#b0ab9e', marginTop: 3 }}>{t.role}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Pricing */}
-      <section style={{ borderTop: '1px solid #f0f0f0', padding: '120px 48px', textAlign: 'center' }}>
+      <section style={{ borderTop: '1px solid #e8e4dc', padding: '120px 48px', textAlign: 'center', background: '#f0ede6' }}>
         <div style={{ maxWidth: 460, margin: '0 auto' }}>
-          <h2 className="f" style={{ fontSize: 'clamp(44px,6vw,72px)', fontWeight: 400, letterSpacing: -2, color: '#111', lineHeight: 1, marginBottom: 20 }}>
-            $1.99<span style={{ fontSize: '0.45em', letterSpacing: 0, fontWeight: 300, color: '#aaa', marginLeft: 6 }}>/mo</span>
+          <h2 className="f" style={{ fontSize: 'clamp(44px,6vw,72px)', fontWeight: 400, letterSpacing: -2, color: '#1a1814', lineHeight: 1, marginBottom: 20 }}>
+            $1.99<span style={{ fontSize: '0.45em', letterSpacing: 0, fontWeight: 300, color: '#b0ab9e', marginLeft: 6 }}>/mo</span>
           </h2>
-          <p style={{ fontSize: 16, color: '#999', fontWeight: 300, lineHeight: 1.8, marginBottom: 44, maxWidth: 360, margin: '0 auto 44px' }}>
+          <p style={{ fontSize: 16, color: '#9e9890', fontWeight: 300, lineHeight: 1.8, marginBottom: 44, maxWidth: 360, margin: '0 auto 44px' }}>
             One plan. Seven days free. No tiers, no annual lock-in. Cancel from your dashboard whenever you like.
           </p>
-          <button onClick={() => openModal()} style={{ padding: '14px 40px', background: '#111', color: '#fff', border: 'none', borderRadius: 3, fontSize: 14, cursor: 'pointer', letterSpacing: 0.2 }}>
+          <button onClick={() => openModal()} style={{ padding: '14px 40px', background: '#1a1814', color: '#f7f5f0', border: 'none', borderRadius: 3, fontSize: 14, cursor: 'pointer', letterSpacing: 0.2 }}>
             Start your free trial
           </button>
-          <p style={{ fontSize: 12, color: '#ccc', marginTop: 16 }}>No charge for 7 days.</p>
+          <p style={{ fontSize: 12, color: '#c0bbb3', marginTop: 16 }}>No charge for 7 days.</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid #f0f0f0', padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="f" style={{ fontWeight: 700, fontSize: 14 }}>Sift</span>
+      <footer style={{ borderTop: '1px solid #e8e4dc', padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="f" style={{ fontWeight: 700, fontSize: 14, color: '#1a1814' }}>Sift</span>
         <div style={{ display: 'flex', gap: 24 }}>
-          {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" style={{ fontSize: 12, color: '#ccc' }}>{l}</a>)}
+          {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" style={{ fontSize: 12, color: '#b5b0a4' }}>{l}</a>)}
         </div>
-        <span style={{ fontSize: 12, color: '#ddd' }}>© 2025 Sift</span>
+        <span style={{ fontSize: 12, color: '#c8c3ba' }}>© 2025 Sift</span>
       </footer>
 
       {/* Modal */}
       {modal && (
         <div onClick={e => { if (e.target === e.currentTarget) setModal(false) }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: '#fff', borderRadius: 8, padding: '44px 40px', maxWidth: 420, width: '100%', position: 'relative' }}>
+          <div style={{ background: '#f7f5f0', borderRadius: 8, padding: '44px 40px', maxWidth: 420, width: '100%', position: 'relative' }}>
             <button onClick={() => setModal(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#ccc', fontSize: 18, cursor: 'pointer', lineHeight: 1, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
 
             <div style={{ display: 'flex', gap: 4, marginBottom: 36 }}>
@@ -198,7 +199,7 @@ export default function Home() {
                   <div key={f.label} style={{ marginBottom: 16 }}>
                     <label style={{ fontSize: 11, fontWeight: 500, color: '#777', marginBottom: 6, display: 'block', letterSpacing: 0.5, textTransform: 'uppercase' }}>{f.label}</label>
                     <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                      style={{ width: '100%', padding: '11px 14px', border: '1px solid #e8e8e8', borderRadius: 3, fontSize: 14, outline: 'none', color: '#111', background: '#fff' }} />
+                      style={{ width: '100%', padding: '11px 14px', border: '1px solid #ddd9d0', borderRadius: 3, fontSize: 14, outline: 'none', color: '#1a1814', background: '#fff' }} />
                   </div>
                 ))}
                 <button onClick={handleSignup} disabled={loading}
@@ -216,7 +217,7 @@ export default function Home() {
                 {error && <p style={{ color: '#c00', fontSize: 13, marginBottom: 12 }}>{error}</p>}
 
                 <div onClick={() => topicInputRef.current?.focus()}
-                  style={{ minHeight: 110, padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 3, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'flex-start', cursor: 'text', marginBottom: 20, background: '#fff' }}>
+                  style={{ minHeight: 110, padding: '10px 12px', border: '1px solid #ddd9d0', borderRadius: 3, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'flex-start', cursor: 'text', marginBottom: 20, background: '#fff' }}>
                   {topics.map(t => (
                     <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#111', padding: '4px 10px', borderRadius: 2, fontSize: 13, color: '#fff' }}>
                       {t}
