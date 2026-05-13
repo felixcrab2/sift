@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { generateNewsletter, gatherSources, emailTemplate } from '@/lib/newsletter'
+import { generateNewsletter, gatherSources, emailTemplate, pickDailyTopics } from '@/lib/newsletter'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -29,10 +29,11 @@ export async function POST(req: NextRequest) {
   const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
-  const sources = await gatherSources(topics)
+  const dailyTopics = pickDailyTopics(topics, 3)
+  const sources = await gatherSources(dailyTopics)
   if (!sources.length) return NextResponse.json({ error: 'No source material found for those topics today.' }, { status: 502 })
 
-  const content = await generateNewsletter(firstName, topics, sources)
+  const content = await generateNewsletter(firstName, dailyTopics, sources)
   const html = emailTemplate(firstName, content, dateLabel)
     .replace('{{dashboard_url}}', `${appUrl}/dashboard`)
     .replace('{{unsubscribe_url}}', `${appUrl}/unsubscribe`)
@@ -44,5 +45,5 @@ export async function POST(req: NextRequest) {
     html,
   })
 
-  return NextResponse.json({ ok: true, sentTo: user.email, topics })
+  return NextResponse.json({ ok: true, sentTo: user.email, dailyTopics })
 }

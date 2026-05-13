@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { generateNewsletter, gatherSources, emailTemplate, clusterKey } from '@/lib/newsletter'
+import { generateNewsletter, gatherSources, emailTemplate, clusterKey, pickDailyTopics } from '@/lib/newsletter'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const DEDUPE_WINDOW_DAYS = 30
 const MIN_FRESH_SOURCES = 4
+const DAILY_TOPIC_COUNT = 3
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -47,7 +48,8 @@ export async function GET(req: NextRequest) {
 
     let content = cached?.content
     if (!content) {
-      const allSources = await gatherSources(topics)
+      const dailyTopics = pickDailyTopics(topics, DAILY_TOPIC_COUNT)
+      const allSources = await gatherSources(dailyTopics)
       if (!allSources.length) continue
 
       const { data: sentRows } = await supabase
@@ -61,7 +63,7 @@ export async function GET(req: NextRequest) {
       const sources = fresh.length >= MIN_FRESH_SOURCES ? fresh : allSources
 
       const firstName = (users[0] as any).profiles?.name?.split(' ')[0] || 'there'
-      content = await generateNewsletter(firstName, topics, sources)
+      content = await generateNewsletter(firstName, dailyTopics, sources)
 
       await supabase.from('newsletter_cache').insert({ cluster_key: key, content, sent_date: today })
 

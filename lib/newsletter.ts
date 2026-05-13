@@ -162,3 +162,13 @@ export function emailTemplate(name: string, content: string, date: string): stri
 export function clusterKey(topics: string[]): string {
   return [...topics].sort().join('|')
 }
+
+export function pickDailyTopics(topics: string[], count: number): string[] {
+  if (topics.length <= count) return [...topics]
+  const a = [...topics]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a.slice(0, count)
+}

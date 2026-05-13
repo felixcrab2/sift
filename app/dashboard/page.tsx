@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, KeyboardEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-const ALL_TOPICS = [
-  '🖥️ Technology', '📈 Finance', '🔬 Science', '🌍 World news',
-  '🎨 Design', '⚽ Sport', '🎵 Music', '🏛️ Politics', '🎬 Film',
-  '📚 Books', '🚀 Startups', '🤖 AI', '🌱 Climate', '🏋️ Health',
-  '🍽️ Food', '✈️ Travel', '📸 Photography', '🧬 Biotech', '🎮 Gaming',
-]
+const MAX_TOPICS = 6
 
 export default function Dashboard() {
   const supabase = createClient()
@@ -17,8 +12,12 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
   const [subscription, setSubscription] = useState<any>(null)
   const [topics, setTopics] = useState<string[]>([])
+  const [topicInput, setTopicInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [sendingTest, setSendingTest] = useState(false)
+  const [testResult, setTestResult] = useState('')
+  const topicInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     async function load() {
@@ -36,9 +35,26 @@ export default function Dashboard() {
     load()
   }, [])
 
-  function toggleTopic(t: string) {
-    setTopics(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])
+  function addTopic() {
+    const t = topicInput.trim()
+    if (t && !topics.includes(t) && topics.length < MAX_TOPICS) {
+      setTopics(p => [...p, t])
+      setSaved(false)
+    }
+    setTopicInput('')
+  }
+
+  function removeTopic(t: string) {
+    setTopics(p => p.filter(x => x !== t))
     setSaved(false)
+  }
+
+  function onTopicKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTopic() }
+    if (e.key === 'Backspace' && !topicInput && topics.length) {
+      setTopics(p => p.slice(0, -1))
+      setSaved(false)
+    }
   }
 
   async function saveInterests() {
@@ -49,12 +65,16 @@ export default function Dashboard() {
     setSaved(true)
   }
 
-  async function handleUpgrade(plan: string) {
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan }),
-    })
+  async function sendTest() {
+    setSendingTest(true); setTestResult('')
+    const res = await fetch('/api/test-newsletter', { method: 'POST' })
+    const data = await res.json()
+    setSendingTest(false)
+    setTestResult(res.ok ? `Sent to ${data.sentTo}` : (data.error ?? 'Something went wrong.'))
+  }
+
+  async function handleUpgrade() {
+    const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
     const { url } = await res.json()
     if (url) window.location.href = url
   }
@@ -65,75 +85,126 @@ export default function Dashboard() {
   }
 
   if (!user) return (
-    <div style={{ minHeight: '100vh', background: '#070710', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>Loading...</div>
+    <div style={{ minHeight: '100vh', background: '#0a0907', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Courier Prime', 'Courier New', monospace", color: '#7a7468', fontSize: 13, letterSpacing: 1 }}>
+      loading...
     </div>
   )
 
   const isActive = subscription?.status === 'active' || subscription?.status === 'trialing'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#070710', color: '#f1f5f9', fontFamily: 'Inter, sans-serif', padding: '0' }}>
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 800, fontSize: 22, background: 'linear-gradient(135deg,#6366f1,#a855f7,#f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Sift</span>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: '#94a3b8' }}>{user.email}</span>
-          <button onClick={signOut} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>Sign out</button>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0a0907; color: #c8c4b8; font-family: 'Courier Prime', 'Courier New', monospace; -webkit-font-smoothing: antialiased; }
+        a { color: inherit; text-decoration: none; }
+        button, input { font-family: 'Courier Prime', 'Courier New', monospace; }
+        input::placeholder { color: #3a352d; }
+        input:focus { outline: none; }
+        .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+        button { transition: opacity 0.25s; }
+        .arrow { display: inline-block; transition: transform 0.3s ease; }
+        .submit:hover { opacity: 0.8; }
+        .submit:hover .arrow { transform: translateX(4px); }
+      `}</style>
+
+      <header style={{ borderBottom: '1px solid #1c1915', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="serif" style={{ fontSize: 30, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5 }}>{user.email}</span>
+          <button onClick={signOut} className="submit" style={{ background: 'none', border: '1px solid #2a2620', color: '#a8a294', padding: '7px 16px', fontSize: 11, cursor: 'pointer', letterSpacing: 2, textTransform: 'uppercase' }}>sign out</button>
         </div>
-      </nav>
+      </header>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '48px 24px' }}>
-        <h1 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 8 }}>Your dashboard</h1>
-        <p style={{ color: '#94a3b8', marginBottom: 48 }}>Manage your interests and subscription.</p>
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: '64px 40px 120px' }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 16 }}>— your dashboard</p>
+        <h1 className="serif" style={{ fontSize: 44, fontWeight: 400, color: '#ece7da', letterSpacing: -1, marginBottom: 56 }}>
+          Manage your <em style={{ fontStyle: 'italic', color: '#c4a86b' }}>briefing</em>.
+        </h1>
 
-        {/* Subscription status */}
-        <div style={{ background: '#0f0f1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 28, marginBottom: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', color: '#6366f1', marginBottom: 6 }}>Subscription</div>
-              {isActive ? (
-                <div>
-                  <span style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700, fontSize: 18 }}>{subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} plan</span>
-                  <span style={{ marginLeft: 10, background: 'rgba(74,222,128,0.15)', color: '#4ade80', borderRadius: 100, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{subscription.status}</span>
-                </div>
-              ) : (
-                <div style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700, fontSize: 18, color: '#94a3b8' }}>No active subscription</div>
-              )}
+        {/* Subscription */}
+        <section style={{ borderTop: '1px solid #1c1915', paddingTop: 32, marginBottom: 56 }}>
+          <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 16 }}>subscription</p>
+          {isActive ? (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+              <span className="serif" style={{ fontSize: 26, fontWeight: 500, color: '#ece7da' }}>$3.99 / month</span>
+              <span style={{ fontSize: 12, color: '#c4a86b', letterSpacing: 2, textTransform: 'uppercase', border: '1px solid #2a2620', padding: '3px 10px' }}>{subscription.status}</span>
             </div>
-            {!isActive && (
-              <button onClick={() => handleUpgrade('daily')} style={{ background: 'linear-gradient(135deg,#6366f1,#a855f7,#f97316)', border: 'none', color: '#fff', padding: '12px 24px', borderRadius: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                Start free trial →
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+              <span className="serif" style={{ fontSize: 22, color: '#a8a294', fontStyle: 'italic' }}>No active subscription.</span>
+              <button onClick={handleUpgrade} className="submit" style={{ background: '#c4a86b', border: 'none', color: '#0a0907', padding: '11px 22px', fontSize: 11, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 700 }}>
+                begin trial <span className="arrow">→</span>
               </button>
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
 
-        {/* Interests */}
-        <div style={{ background: '#0f0f1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 28 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', color: '#6366f1', marginBottom: 6 }}>Your interests</div>
-          <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 24 }}>Select topics to include in your daily briefing.</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 28 }}>
-            {ALL_TOPICS.map(t => (
-              <button key={t} onClick={() => toggleTopic(t)} style={{
-                padding: '9px 18px', borderRadius: 100, fontSize: 14, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
-                background: topics.includes(t) ? 'rgba(99,102,241,0.15)' : '#161627',
-                border: topics.includes(t) ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.07)',
-                color: topics.includes(t) ? '#a5b4fc' : '#94a3b8',
-              }}>{t}</button>
-            ))}
+        {/* Subjects */}
+        <section style={{ borderTop: '1px solid #1c1915', paddingTop: 32, marginBottom: 56 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+            <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468' }}>your subjects</p>
+            <p style={{ fontSize: 11, color: '#5a564c', letterSpacing: 0.5 }}>{topics.length} of {MAX_TOPICS}</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={saveInterests} disabled={saving} style={{
-              background: 'linear-gradient(135deg,#6366f1,#a855f7,#f97316)', border: 'none', color: '#fff',
-              padding: '12px 28px', borderRadius: 10, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'Plus Jakarta Sans, sans-serif', opacity: saving ? 0.7 : 1,
-            }}>
-              {saving ? 'Saving...' : 'Save interests'}
+          <p style={{ fontSize: 14, color: '#8a8478', lineHeight: 1.85, marginBottom: 28 }}>
+            Add up to {MAX_TOPICS} subjects you follow. Each morning, three are chosen at random for your briefing — so the rotation stays fresh.
+          </p>
+
+          <div
+            onClick={() => topicInputRef.current?.focus()}
+            style={{ minHeight: 120, borderBottom: '1px solid #2a2620', paddingBottom: 16, marginBottom: 24, cursor: 'text' }}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: topics.length ? 14 : 0 }}>
+              {topics.map(t => (
+                <span key={t} style={{ fontSize: 13, color: '#dad5c8', letterSpacing: 0.3, display: 'inline-flex', alignItems: 'center' }}>
+                  [{t}
+                  <button
+                    onClick={() => removeTopic(t)}
+                    style={{ background: 'none', border: 'none', color: '#5a564c', cursor: 'pointer', fontSize: 13, padding: '0 0 0 4px' }}
+                  >×</button>]
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ color: '#7a7468', fontSize: 13 }}>&gt;</span>
+              <input
+                ref={topicInputRef}
+                value={topicInput}
+                onChange={e => setTopicInput(e.target.value)}
+                onKeyDown={onTopicKey}
+                onBlur={addTopic}
+                disabled={topics.length >= MAX_TOPICS}
+                placeholder={topics.length >= MAX_TOPICS ? 'maximum reached — remove one to add another' : 'type a subject and press enter'}
+                style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1, opacity: topics.length >= MAX_TOPICS ? 0.5 : 1 }}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={saveInterests} disabled={saving} className="submit" style={{ background: '#c4a86b', border: 'none', color: '#0a0907', padding: '11px 22px', fontSize: 11, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', fontWeight: 700, opacity: saving ? 0.5 : 1 }}>
+              {saving ? 'saving...' : 'save subjects'}
             </button>
-            {saved && <span style={{ color: '#4ade80', fontSize: 14 }}>✓ Saved</span>}
+            {saved && <span style={{ fontSize: 12, color: '#c4a86b', fontStyle: 'italic' }}>saved.</span>}
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
+
+        {/* Test send */}
+        {isActive && (
+          <section style={{ borderTop: '1px solid #1c1915', paddingTop: 32 }}>
+            <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 16 }}>preview</p>
+            <p style={{ fontSize: 14, color: '#8a8478', lineHeight: 1.85, marginBottom: 24 }}>
+              Send a sample edition to your inbox right now using your current subjects.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <button onClick={sendTest} disabled={sendingTest} className="submit" style={{ background: 'none', border: '1px solid #2a2620', color: '#ece7da', padding: '11px 22px', fontSize: 11, cursor: 'pointer', letterSpacing: 2.5, textTransform: 'uppercase', opacity: sendingTest ? 0.5 : 1 }}>
+                {sendingTest ? 'composing...' : <>send a test edition <span className="arrow">→</span></>}
+              </button>
+              {testResult && <span style={{ fontSize: 12, color: '#c4a86b', fontStyle: 'italic' }}>{testResult}</span>}
+            </div>
+          </section>
+        )}
+      </main>
+    </>
   )
 }

@@ -121,9 +121,11 @@ export default function Home() {
     setStep(1); setError(''); setModal(true)
   }
 
+  const MAX_TOPICS = 6
+
   function addTopic() {
     const t = topicInput.trim()
-    if (t && !topics.includes(t)) setTopics(p => [...p, t])
+    if (t && !topics.includes(t) && topics.length < MAX_TOPICS) setTopics(p => [...p, t])
     setTopicInput('')
   }
 
@@ -255,7 +257,7 @@ export default function Home() {
           </div>
 
           <p style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18, ...reveal(0.5) }}>
-            $1.99 / month &nbsp;·&nbsp; first seven days free &nbsp;·&nbsp; leave from inside, anytime
+            $3.99 / month &nbsp;·&nbsp; first seven days free &nbsp;·&nbsp; leave from inside, anytime
           </p>
 
         </div>
@@ -423,7 +425,7 @@ export default function Home() {
           </Reveal>
           <Reveal delay={0.15}>
             <h2 className="serif" style={{ fontSize: 'clamp(72px,12vw,160px)', fontWeight: 400, color: '#ece7da', letterSpacing: -4, lineHeight: 1, marginBottom: 16 }}>
-              $1.99
+              $3.99
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
@@ -492,7 +494,7 @@ export default function Home() {
               {step === 1 ? 'Begin your trial.' : 'Choose your subjects.'}
             </p>
             <p style={{ fontSize: 13, color: '#8a8478', marginBottom: 36, lineHeight: 1.7 }}>
-              {step === 1 ? 'Seven days free, then $1.99 per month. Cancel from inside whenever you wish.' : 'Type anything and press enter. As specific as you like — the more particular, the better the briefing.'}
+              {step === 1 ? 'Seven days free, then $3.99 per month. Cancel from inside whenever you wish.' : `Add up to ${MAX_TOPICS} subjects you follow. Each day, three are chosen for your briefing — so the rotation stays fresh.`}
             </p>
 
             {error && <p style={{ color: '#c47a5a', fontSize: 12, marginBottom: 20, letterSpacing: 0.3 }}>{error}</p>}
@@ -555,11 +557,14 @@ export default function Home() {
                       onChange={e => setTopicInput(e.target.value)}
                       onKeyDown={onTopicKey}
                       onBlur={addTopic}
-                      placeholder={topics.length ? '' : 'byzantine history, formula 1, venture capital...'}
-                      style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1 }}
+                      disabled={topics.length >= MAX_TOPICS}
+                      placeholder={topics.length >= MAX_TOPICS ? 'maximum reached — backspace to remove one' : (topics.length ? '' : 'byzantine history, formula 1, venture capital...')}
+                      style={{ background: 'none', border: 'none', fontSize: 14, color: '#ece7da', flex: 1, opacity: topics.length >= MAX_TOPICS ? 0.5 : 1 }}
                     />
                   </div>
                 </div>
+
+                <p style={{ fontSize: 11, color: '#5a564c', marginBottom: 14, letterSpacing: 0.5, textAlign: 'right' }}>{topics.length} of {MAX_TOPICS} subjects</p>
 
                 <button
                   onClick={handleFinish}
