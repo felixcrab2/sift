@@ -19,14 +19,13 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.user_id
-    const plan = session.metadata?.plan
-    if (!userId || !plan) return NextResponse.json({ ok: true })
+    if (!userId) return NextResponse.json({ ok: true })
 
     await supabase.from('subscriptions').upsert({
       user_id: userId,
       stripe_customer_id: session.customer as string,
       stripe_subscription_id: session.subscription as string,
-      plan,
+      plan: 'daily',
       status: 'trialing',
       current_period_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     }, { onConflict: 'user_id' })
