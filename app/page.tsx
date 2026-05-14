@@ -11,7 +11,7 @@ function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
-      { threshold: 0.18 }
+      { threshold: 0, rootMargin: '0px 0px -80px 0px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -224,14 +224,20 @@ export default function Home() {
 
         @media (max-width: 700px) {
           .row { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+          .sample-article { padding: 28px 22px !important; }
+          .sample-header { font-size: 18px !important; }
+          .section-pad { padding-left: 22px !important; padding-right: 22px !important; }
+          .header-pad { padding-left: 20px !important; padding-right: 20px !important; }
+          .header-actions-mobile { gap: 14px !important; }
+          .intake-hide-mobile { display: none !important; }
         }
       `}</style>
 
       {/* Header */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, #0a0907 70%, transparent)' }}>
+      <header className="header-pad" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, #0a0907 70%, transparent)' }}>
         <span className="a1 serif" style={{ fontSize: 32, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
-        <div className="a1" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>
+        <div className="a1 header-actions-mobile" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          <span className="intake-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>
             <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#c4a86b' }}></span>
             intake open
           </span>
@@ -241,7 +247,7 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '140px 40px 80px', position: 'relative' }}>
+      <main className="section-pad" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '140px 40px 80px', position: 'relative' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
 
           {/* Masthead line */}
@@ -292,7 +298,7 @@ export default function Home() {
       </main>
 
       {/* Manifest */}
-      <section style={{ padding: '160px 40px', borderTop: '1px solid #1c1915' }}>
+      <section className="section-pad" style={{ padding: '160px 40px', borderTop: '1px solid #1c1915' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <Reveal>
             <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 64 }}>
@@ -330,7 +336,7 @@ export default function Home() {
       </section>
 
       {/* Sample edition */}
-      <section style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
+      <section className="section-pad" style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <Reveal>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 32 }}>
@@ -342,7 +348,7 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <article style={{ border: '1px solid #2a2620', padding: '48px 52px', background: '#0e0c09' }}>
+            <article className="sample-article" style={{ border: '1px solid #2a2620', padding: '48px 52px', background: '#0e0c09' }}>
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid #2a2620' }}>
                 <span className="serif" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 0.5, color: '#ece7da' }}>Sift</span>
                 <span style={{ fontSize: 11, color: '#7a7468', letterSpacing: 2, textTransform: 'uppercase' }}>Edition №141 &nbsp;·&nbsp; 12 May 2026</span>
@@ -402,7 +408,7 @@ export default function Home() {
       </section>
 
       {/* Range */}
-      <section style={{ padding: '140px 40px', borderTop: '1px solid #1c1915' }}>
+      <section className="section-pad" style={{ padding: '140px 40px', borderTop: '1px solid #1c1915' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <Reveal>
             <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 32 }}>
@@ -423,7 +429,7 @@ export default function Home() {
       </section>
 
       {/* Testimony */}
-      <section style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
+      <section className="section-pad" style={{ padding: '120px 40px', borderTop: '1px solid #1c1915' }}>
         <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
           <Reveal>
             <p className="serif" style={{ fontSize: 'clamp(22px,3vw,32px)', color: '#dad5c8', lineHeight: 1.6, fontStyle: 'italic', fontWeight: 400, letterSpacing: -0.2 }}>
@@ -439,7 +445,7 @@ export default function Home() {
       </section>
 
       {/* Pricing & final CTA combined */}
-      <section style={{ padding: '140px 40px 120px', borderTop: '1px solid #1c1915' }}>
+      <section className="section-pad" style={{ padding: '140px 40px 120px', borderTop: '1px solid #1c1915' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
           <Reveal>
             <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 28 }}>
