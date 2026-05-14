@@ -280,7 +280,7 @@ export default function Home() {
           </div>
 
           <p style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18, ...reveal(0.5) }}>
-            $3.99 / month &nbsp;·&nbsp; three editions a week &nbsp;·&nbsp; seven days free
+            $1.99 / month &nbsp;·&nbsp; three editions a week &nbsp;·&nbsp; seven days free
           </p>
 
         </div>
@@ -448,7 +448,7 @@ export default function Home() {
           </Reveal>
           <Reveal delay={0.15}>
             <h2 className="serif" style={{ fontSize: 'clamp(72px,12vw,160px)', fontWeight: 400, color: '#ece7da', letterSpacing: -4, lineHeight: 1, marginBottom: 16 }}>
-              $3.99
+              $1.99
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
@@ -520,7 +520,7 @@ export default function Home() {
               {mode === 'signin'
                 ? 'Sign in to manage your subjects and read past editions.'
                 : (step === 1
-                  ? 'Seven days free, then $3.99 per month. Cancel from inside whenever you wish.'
+                  ? 'Seven days free, then $1.99 per month. Cancel from inside whenever you wish.'
                   : `Add up to ${MAX_TOPICS} subjects you follow. For each edition, three are chosen — so the rotation stays fresh.`)}
             </p>
 

@@ -14,7 +14,7 @@ async function searchTopic(topic: string): Promise<{ title: string; content: str
       body: JSON.stringify({
         api_key: process.env.TAVILY_API_KEY,
         query: `recent developments, notable writing, and specific findings on: ${topic}`,
-        search_depth: 'advanced',
+        search_depth: 'basic',
         max_results: 10,
         days: 7,
       }),

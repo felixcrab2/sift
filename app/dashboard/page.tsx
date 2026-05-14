@@ -128,7 +128,7 @@ export default function Dashboard() {
           <p style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#7a7468', marginBottom: 16 }}>subscription</p>
           {isActive ? (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-              <span className="serif" style={{ fontSize: 26, fontWeight: 500, color: '#ece7da' }}>$3.99 / month</span>
+              <span className="serif" style={{ fontSize: 26, fontWeight: 500, color: '#ece7da' }}>$1.99 / month</span>
               <span style={{ fontSize: 12, color: '#c4a86b', letterSpacing: 2, textTransform: 'uppercase', border: '1px solid #2a2620', padding: '3px 10px' }}>{subscription.status}</span>
             </div>
           ) : (
