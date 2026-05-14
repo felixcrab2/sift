@@ -6,25 +6,36 @@ export type SourceItem = { topic: string; title: string; content: string; url: s
 
 async function searchTopic(topic: string): Promise<{ title: string; content: string; url: string }[]> {
   try {
-    const res = await fetch('https://api.tavily.com/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        api_key: process.env.TAVILY_API_KEY,
-        query: `recent developments, notable writing, and specific findings on: ${topic}`,
-        search_depth: 'advanced',
-        max_results: 10,
-        days: 7,
-      }),
+    const params = new URLSearchParams({
+      q: `${topic} recent developments specific findings`,
+      count: '12',
+      freshness: 'pw', // past week
+      extra_snippets: 'true',
+      text_decorations: 'false',
+      country: 'us',
+      search_lang: 'en',
+    })
+    const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params}`, {
+      method: 'GET',
+      headers: {
+        'X-Subscription-Token': process.env.BRAVE_SEARCH_API_KEY ?? '',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip',
+      },
       signal: AbortSignal.timeout(12000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    return (data.results ?? []).slice(0, 8).map((r: any) => ({
-      title: r.title ?? '',
-      content: (r.content ?? '').slice(0, 800),
-      url: r.url ?? '',
-    }))
+    const results = data?.web?.results ?? []
+    return results.slice(0, 10).map((r: any) => {
+      const extra = Array.isArray(r.extra_snippets) ? r.extra_snippets.join(' ') : ''
+      const content = [r.description ?? '', extra].filter(Boolean).join(' ').slice(0, 900)
+      return {
+        title: r.title ?? '',
+        content,
+        url: r.url ?? '',
+      }
+    }).filter((r: { title: string; content: string; url: string }) => r.title && r.url)
   } catch {
     return []
   }
@@ -69,7 +80,7 @@ export async function generateNewsletter(name: string, topics: string[], sources
     max_tokens: 2200,
     messages: [{
       role: 'user',
-      content: `You are the editor of Sift, a premium daily briefing for one reader. Write today's edition for ${name}.
+      content: `You are the editor of Sift, a premium briefing sent Monday, Wednesday and Friday mornings — composed for one reader at a time. Write today's edition for ${name}.
 
 Date: ${today}
 Their chosen subjects: ${topics.join(', ')}
@@ -151,7 +162,7 @@ export function emailTemplate(name: string, content: string, date: string): stri
         <!-- Footer -->
         <tr><td style="background:#f7f4ee;padding:18px 36px;border-radius:0 0 8px 8px;border-top:1px solid #e8e4da;">
           <p style="margin:0;font-family:'Helvetica Neue',sans-serif;font-size:11px;color:#b5b0a5;text-align:center;">
-            Sift · Your daily briefing ·
+            Sift · Your morning briefing ·
             <a href="{{dashboard_url}}" style="color:#c9a96e;text-decoration:none;">Manage topics</a> ·
             <a href="{{unsubscribe_url}}" style="color:#9e9488;text-decoration:none;">Unsubscribe</a>
           </p>

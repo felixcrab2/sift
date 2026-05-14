@@ -256,7 +256,7 @@ export default function Home() {
           </h1>
 
           <p style={{ fontSize: 16, color: '#a8a294', lineHeight: 1.85, marginBottom: 56, maxWidth: 520, ...reveal(0.1) }}>
-            Each edition is composed nightly, for a single reader, around the subjects you choose to follow. Nothing else gets through.
+            Three mornings a week — Monday, Wednesday, Friday — an edition composed for a single reader, around the subjects you choose to follow. Nothing else gets through.
           </p>
 
           <div style={{ marginBottom: 16, ...reveal(0.3) }}>
@@ -280,7 +280,7 @@ export default function Home() {
           </div>
 
           <p style={{ fontSize: 12, color: '#7a7468', letterSpacing: 0.5, marginTop: 18, ...reveal(0.5) }}>
-            $3.99 / month &nbsp;·&nbsp; first seven days free &nbsp;·&nbsp; leave from inside, anytime
+            $3.99 / month &nbsp;·&nbsp; three editions a week &nbsp;·&nbsp; seven days free
           </p>
 
         </div>
@@ -482,7 +482,7 @@ export default function Home() {
                 </button>
               </div>
               <p className="serif" style={{ fontSize: 15, color: '#7a7468', fontStyle: 'italic', letterSpacing: 0.3, marginTop: 12 }}>
-                Your first edition arrives tomorrow morning.
+                Your first edition arrives the next Monday, Wednesday or Friday morning.
               </p>
             </div>
           </Reveal>
@@ -495,7 +495,7 @@ export default function Home() {
         <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
           {['Privacy', 'Terms', 'Contact'].map(l => <a key={l} href="#" className="link" style={{ fontSize: 12, color: '#7a7468', letterSpacing: 1 }}>{l}</a>)}
         </div>
-        <span style={{ fontSize: 12, color: '#5a564c', letterSpacing: 0.5 }}>© 2025 Sift &nbsp;·&nbsp; written nightly</span>
+        <span style={{ fontSize: 12, color: '#5a564c', letterSpacing: 0.5 }}>© 2025 Sift &nbsp;·&nbsp; mwf mornings</span>
       </footer>
 
       {/* Modal */}
@@ -521,7 +521,7 @@ export default function Home() {
                 ? 'Sign in to manage your subjects and read past editions.'
                 : (step === 1
                   ? 'Seven days free, then $3.99 per month. Cancel from inside whenever you wish.'
-                  : `Add up to ${MAX_TOPICS} subjects you follow. Each day, three are chosen for your briefing — so the rotation stays fresh.`)}
+                  : `Add up to ${MAX_TOPICS} subjects you follow. For each edition, three are chosen — so the rotation stays fresh.`)}
             </p>
 
             {error && <p style={{ color: '#c47a5a', fontSize: 12, marginBottom: 20, letterSpacing: 0.3 }}>{error}</p>}

@@ -148,7 +148,7 @@ export default function Dashboard() {
             <p style={{ fontSize: 11, color: '#5a564c', letterSpacing: 0.5 }}>{topics.length} of {MAX_TOPICS}</p>
           </div>
           <p style={{ fontSize: 14, color: '#8a8478', lineHeight: 1.85, marginBottom: 28 }}>
-            Add up to {MAX_TOPICS} subjects you follow. Each morning, three are chosen at random for your briefing — so the rotation stays fresh.
+            Add up to {MAX_TOPICS} subjects you follow. For each edition — Monday, Wednesday, Friday mornings — three are chosen at random, so the rotation stays fresh.
           </p>
 
           <div
