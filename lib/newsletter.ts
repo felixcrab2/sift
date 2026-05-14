@@ -4,38 +4,29 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export type SourceItem = { topic: string; title: string; content: string; url: string }
 
+// Search backend. Tavily for now (1,000 free credits/month covers ~13 users).
+// To switch to Brave later, replace this function body with the Brave fetch.
 async function searchTopic(topic: string): Promise<{ title: string; content: string; url: string }[]> {
   try {
-    const params = new URLSearchParams({
-      q: `${topic} recent developments specific findings`,
-      count: '12',
-      freshness: 'pw', // past week
-      extra_snippets: 'true',
-      text_decorations: 'false',
-      country: 'us',
-      search_lang: 'en',
-    })
-    const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params}`, {
-      method: 'GET',
-      headers: {
-        'X-Subscription-Token': process.env.BRAVE_SEARCH_API_KEY ?? '',
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip',
-      },
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: process.env.TAVILY_API_KEY,
+        query: `recent developments, notable writing, and specific findings on: ${topic}`,
+        search_depth: 'advanced',
+        max_results: 10,
+        days: 7,
+      }),
       signal: AbortSignal.timeout(12000),
     })
     if (!res.ok) return []
     const data = await res.json()
-    const results = data?.web?.results ?? []
-    return results.slice(0, 10).map((r: any) => {
-      const extra = Array.isArray(r.extra_snippets) ? r.extra_snippets.join(' ') : ''
-      const content = [r.description ?? '', extra].filter(Boolean).join(' ').slice(0, 900)
-      return {
-        title: r.title ?? '',
-        content,
-        url: r.url ?? '',
-      }
-    }).filter((r: { title: string; content: string; url: string }) => r.title && r.url)
+    return (data.results ?? []).slice(0, 8).map((r: any) => ({
+      title: r.title ?? '',
+      content: (r.content ?? '').slice(0, 800),
+      url: r.url ?? '',
+    }))
   } catch {
     return []
   }
